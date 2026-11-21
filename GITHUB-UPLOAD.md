@@ -7,7 +7,7 @@
 3. Im neuen GitHub-Repository **Add file → Upload files** wählen.
 4. **Alle Dateien und Unterordner aus dem entpackten Verzeichnis** hochladen, nicht das ZIP und nicht nur die `.js`-Datei. Bei GitHub muss `hacs.json` direkt im Hauptverzeichnis liegen und `dist/central-overview-card.js` vorhanden sein.
 5. Auf **Commit changes** klicken.
-6. Unter **Releases → Draft a new release** optional ein Release mit Tag `v1.4.0` erstellen. Ein Release ist für Updates und eine spätere öffentliche Veröffentlichung sinnvoll.
+6. Unter **Releases → Draft a new release** optional ein Release mit Tag `v1.4.3` erstellen. Ein Release ist für Updates und eine spätere öffentliche Veröffentlichung sinnvoll.
 7. In Home Assistant HACS / Marketplace öffnen, benutzerdefiniertes Repository hinzufügen: die URL `https://github.com/DEIN-NAME/lovelace-central-overview-card` angeben und Kategorie **Dashboard** wählen.
 8. Nach Installation das Dashboard neu laden. Unter **Dashboard bearbeiten → Karte hinzufügen** `Zentralübersicht (universell)` wählen. Dann alles im **visuellen Editor** einstellen.
 

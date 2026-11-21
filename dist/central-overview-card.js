@@ -1,4 +1,4 @@
-/* Central Overview Card v1.4.0 | MIT | Home Assistant Lovelace | no dependencies */
+/* Central Overview Card v1.4.3 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -234,7 +234,7 @@
 
   const CARD_CSS = `
     :host {display:block;}
-    ha-card {background:none; border:0; box-shadow:none; padding:0; overflow:visible;}
+    ha-card {background:transparent; border:0; box-shadow:none; padding:0; overflow:visible;}
     .grid {display:grid; grid-template-columns:repeat(var(--co-columns, 2),minmax(0,1fr));
       gap:var(--co-gap,8px);}
     button.tile {box-sizing:border-box; appearance:none; font:inherit;
@@ -242,27 +242,28 @@
       display:grid; grid-template-rows:30px minmax(26px,auto) 18px;
       align-content:center; justify-items:start; row-gap:1px;
       padding:10px 11px; min-width:0; width:100%; min-height:102px;
-      border:1px solid var(--ha-card-border-color,var(--divider-color,rgba(0,0,0,0.08)));
+      /* Keine farbigen Linien rechts/unten: weder Themen-Rahmen noch Schatten. */
+      border:0;
       overflow:hidden;
-      background-clip:padding-box;
       border-radius:var(--ha-card-border-radius,12px);
       color:var(--primary-text-color);
       background:var(--ha-card-background,var(--card-background-color,#fff));
-      box-shadow:var(--ha-card-box-shadow,0 1px 2px rgb(0 0 0 / 3%));
+      box-shadow:none;
       cursor:default;
       transition:box-shadow .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
     }
     button.tile.clickable {cursor:pointer;}
     button.tile.clickable:hover {transform:translateY(-1px);
-      box-shadow:0 3px 10px rgb(0 0 0 / 7%);
-      border-color:var(--ha-card-border-color,var(--divider-color,rgba(0,0,0,0.08)));}
+      box-shadow:none;}
     button.tile.clickable:active {transform:translateY(0);}
     button.tile:focus-visible {outline:2px solid var(--primary-color); outline-offset:2px;}
     /* Original v1.2 gradient, exactly: 135deg, 32% through 14%, transparent by 68%. */
-    button.tile.colored {background:linear-gradient(135deg,
-      color-mix(in srgb,var(--tile-color) 32%, transparent) 0%,
-      color-mix(in srgb,var(--tile-color) 32%, transparent) 14%,
-      transparent 68%),var(--ha-card-background,var(--card-background-color,#fff));}
+    button.tile.colored {background:
+      linear-gradient(135deg,
+        color-mix(in srgb,var(--tile-color) 32%, transparent) 0%,
+        color-mix(in srgb,var(--tile-color) 32%, transparent) 14%,
+        transparent 68%),
+      var(--ha-card-background,var(--card-background-color,#fff));}
     .icon {box-sizing:border-box; height:30px; width:30px; display:flex;
       align-items:center; justify-content:flex-start;
       color:var(--tile-fg,var(--secondary-text-color));}

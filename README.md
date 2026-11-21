@@ -4,7 +4,7 @@ Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln
 
 ![Vorschau mit frei erfundenen Beispieldaten](images/preview.png)
 
-### Design in v1.4.0 – ursprünglicher Farbverlauf, angenehme Höhe
+### Design in v1.4.3 – ursprünglicher Farbverlauf, angenehme Höhe
 
 - Der **ursprüngliche Farbverlauf** ist zurück (135°; HA-Theme-Farbe bei 32 % von 0–14 %, auslaufend bis 68 %), identisch zur v1.2-Darstellung.
 - Kachel-Mindesthöhe jetzt **102 px** statt 86 px (v1.3) oder 111 px (v1.2) – ein ausgewogener Mittelweg.
@@ -80,7 +80,7 @@ LICENSE
 
 Über **Add file → Upload files → Commit changes** kannst du Dateien hochladen. GitHub lädt versteckte `.github`-Ordner über Drag-and-drop je nach Browser unterschiedlich zuverlässig hoch; kontrolliere, dass `.github/workflows/validate.yml` vorhanden ist. Alternativ lege sie in GitHub per **Add file → Create new file** mit dem Pfad `.github/workflows/validate.yml` an.
 
-Erstelle danach optional unter **Releases → Draft a new release** ein Release, z. B. `v1.4.0`. Dieses ist für die öffentliche Verteilung und Updates sinnvoll. Anschließend das Repository in HACS/Marketplace als benutzerdefiniertes Repository vom Typ **Dashboard** hinzufügen.
+Erstelle danach optional unter **Releases → Draft a new release** ein Release, z. B. `v1.4.3`. Dieses ist für die öffentliche Verteilung und Updates sinnvoll. Anschließend das Repository in HACS/Marketplace als benutzerdefiniertes Repository vom Typ **Dashboard** hinzufügen.
 
 ## Installation
 
