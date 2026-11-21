@@ -1,4 +1,4 @@
-# Central Overview Card – universelle Home-Assistant-Zentralübersicht
+# MYHS Central Card
 
 Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln** und **vollständigem visuellem Editor**. Die Karte ist für jede Home-Assistant-Installation gedacht. Sie enthält **keine festen Benutzer- oder Entitäts-IDs** und benötigt **keine `button-card`**.
 
