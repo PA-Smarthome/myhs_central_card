@@ -13,7 +13,7 @@ Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYH
 ## Funktionen
 
 - **Alles auf einen Blick:** Statusinformationen zu Sicherheit, Fenstern, Licht, Klima, Medien, Anwesenheit und weiteren Bereichen.
-- **Einfach anpassbar:** Kacheln direkt im Home-Assistant-Menü hinzufügen, entfernen, ausblenden und neu anordnen.
+- **Einfach anpassbar:** Kacheln direkt im Home-Assistant-Menü suchen, hinzufügen, duplizieren, ausblenden, entfernen und neu anordnen.
 - **Flexible Datenquellen:** Automatische Erkennung, frei gewählte Entitäten oder Gruppen und Helfer.
 - **Passendes Design:** Home-Assistant-Theme-Farben, integrierte Material Design Icons (`mdi:`) und Unterstützung für helle und dunkle Themes.
 - **Individuelles Layout:** Ein bis vier Spalten, einstellbare Abstände, Beschriftungen und Navigationsziele.
@@ -38,16 +38,20 @@ Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYH
 
 ## Visueller Editor
 
-Die gesamte Konfiguration erfolgt direkt über den Karteneditor in Home Assistant. **YAML ist nicht erforderlich.**
+Die gesamte Konfiguration erfolgt direkt über den Karteneditor in Home Assistant. **YAML ist nicht erforderlich.** Globale Darstellungseinstellungen sind einklappbar; pro Kachel werden nur die gerade benötigten Felder gezeigt.
 
-![Visueller Editor der MYHS Central Card](images/editor.png)
+![Übersichtlicher Editor mit Kachelverwaltung](images/editor-overview.png)
+
+*Alle Kacheln erscheinen zunächst als kompakte Liste. Ein Klick auf eine Kachel öffnet ihre Einstellungen.*
+
+![Detailansicht einer geöffneten Kachel](images/editor.png)
 
 Unter **Dashboard bearbeiten → Karte bearbeiten** lassen sich:
 
-- Kacheln hinzufügen, entfernen, ein- oder ausblenden und umsortieren;
+- Kacheln schnell suchen, nach Sichtbarkeit filtern, hinzufügen, duplizieren, entfernen, ein- oder ausblenden und umsortieren;
 - Kacheltyp und Datenquelle auswählen;
 - einzelne Entitäten, Bereiche sowie Gruppen und Helfer zuordnen;
-- Namen, `mdi:`-Symbole, Statusfarben und Navigationsziele ändern;
+- Namen, `mdi:`-Symbole, Statusfarben und Navigationsziele in getrennten Einstellungsabschnitten ändern;
 - Spaltenzahl (1–4), Kachelabstände und Untertitel anpassen.
 
 ## Die 16 Kacheltypen

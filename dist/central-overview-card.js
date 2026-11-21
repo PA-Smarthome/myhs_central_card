@@ -360,187 +360,367 @@
     }
   }
 
-  const EDIT_CSS=`
+  /* Visual editor v2: a compact overview with progressive disclosure. */
+  const EDIT_CSS = `
     :host {display:block;color:var(--primary-text-color);font-family:var(--primary-font-family,inherit);}
-    .panel {display:grid;gap:14px;}.global,.tile-editor {padding:12px;background:var(--card-background-color,var(--ha-card-background,#fff));
-      border:1px solid var(--divider-color,#ddd);border-radius:12px;}
-    h3 {margin:0 0 10px;font-size:15px;}p.help {margin:4px 0 10px;font-size:12px;line-height:1.4;color:var(--secondary-text-color);}
-    .fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-    label {display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--secondary-text-color);min-width:0;}
-    label.wide {grid-column:1 / -1;}
-    input,select {box-sizing:border-box;min-height:36px;border:1px solid var(--divider-color,#bbb);border-radius:7px;
-      background:var(--card-background-color,var(--ha-card-background,#fff));color:var(--primary-text-color);font:inherit;font-size:14px;padding:6px 8px;width:100%;}
-    input[type=checkbox] {width:17px;min-height:17px;accent-color:var(--primary-color,#03a9f4);}
-    label.check {flex-direction:row;align-items:center;color:var(--primary-text-color);}
-    ha-entity-picker, ha-icon-picker {width:100%;min-height:40px;display:block;}
+    * {box-sizing:border-box;}
+    .editor {display:grid;gap:15px;}
+    .intro {display:flex;align-items:center;gap:11px;padding:4px 0 1px;}
+    .brand-icon {display:flex;align-items:center;justify-content:center;flex:none;width:43px;height:43px;
+      border-radius:12px;background:var(--secondary-background-color,var(--card-background-color,#fff));
+      color:var(--primary-color,#03a9f4);}
+    .brand-icon ha-icon {--mdc-icon-size:23px;}
+    .intro-copy {min-width:0;flex:1;}
+    .intro h3 {font-size:16px;line-height:1.3;margin:0 0 2px;font-weight:700;}
+    .intro p {margin:0;font-size:12px;color:var(--secondary-text-color);line-height:1.45;}
+    .version {font-size:11px;font-weight:600;white-space:nowrap;border-radius:20px;padding:5px 8px;
+      color:var(--secondary-text-color);background:var(--secondary-background-color,var(--card-background-color,#fff));}
+    details {min-width:0;}
+    details.settings, details.tile-item {border:1px solid var(--divider-color,#ddd);
+      border-radius:12px;background:var(--ha-card-background,var(--card-background-color,#fff));overflow:hidden;}
+    details.settings>summary, details.tile-item>summary {list-style:none;cursor:pointer;outline-offset:3px;}
+    details.settings>summary::-webkit-details-marker, details.tile-item>summary::-webkit-details-marker {display:none;}
+    details.settings>summary {display:flex;align-items:center;gap:11px;padding:13px 14px;}
+    .settings-icon {color:var(--secondary-text-color);display:flex;}
+    .settings-icon ha-icon {--mdc-icon-size:21px;}
+    .settings-summary {flex:1;min-width:0;display:grid;gap:3px;}
+    .settings-summary strong {font-size:13px;}
+    .settings-summary small {font-size:11px;color:var(--secondary-text-color);}
+    .chevron {font-size:19px;line-height:1;color:var(--secondary-text-color);flex:none;display:inline-block;
+      transition:transform .15s ease;transform:rotate(90deg);}
+    details[open]>summary .chevron {transform:rotate(-90deg);}
+    .settings-body {border-top:1px solid var(--divider-color,#ddd);padding:15px;display:grid;gap:14px;}
+    .section-heading {display:flex;align-items:baseline;gap:6px;margin:0 0 11px;}
+    .section-heading strong {font-size:13px;font-weight:700;}
+    .section-heading small {font-size:11px;color:var(--secondary-text-color);}
+    .fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;}
+    .control {display:flex;flex-direction:column;gap:6px;font-size:12px;
+      color:var(--secondary-text-color);min-width:0;}
+    .control.wide,.wide {grid-column:1 / -1;}
+    input,select {width:100%;min-width:0;min-height:40px;border:1px solid var(--divider-color,#d1d5db);
+      border-radius:9px;padding:9px 10px;background:var(--card-background-color,var(--ha-card-background,#fff));
+      color:var(--primary-text-color);font:inherit;font-size:13px;}
+    input:focus,select:focus {outline:2px solid var(--primary-color,#03a9f4);outline-offset:1px;}
+    input[type=checkbox] {width:18px;min-width:18px;min-height:18px;height:18px;margin:0;
+      accent-color:var(--primary-color,#03a9f4);}
+    .check {display:flex;align-items:center;gap:9px;font-size:13px;color:var(--primary-text-color);cursor:pointer;}
+    .check.wide {grid-column:1 / -1;}
+    .check-subtext {font-size:11px;color:var(--secondary-text-color);margin:4px 0 0 27px;}
+    ha-entity-picker,ha-icon-picker {display:block;width:100%;min-height:40px;}
     ha-icon-picker:not(:defined) {display:none;}
     .icon-fallback {display:none;}
-    ha-icon-picker:not(:defined) + .icon-fallback {display:flex;}
-    .fields > .wide {grid-column:1 / -1;}
-    details {border:1px solid var(--divider-color,#ddd);border-radius:11px;overflow:hidden;}
-    summary {padding:10px;cursor:pointer;font-size:14px;font-weight:600;}
-    .tile-editor {border:0;border-top:1px solid var(--divider-color,#ddd);border-radius:0;display:grid;gap:12px;}
-    .actions {display:flex;gap:6px;align-items:center;justify-content:flex-end;}
-    button {background:var(--secondary-background-color,var(--card-background-color,#fff));color:var(--primary-text-color);
-      border:1px solid var(--divider-color,#ddd);border-radius:7px;padding:6px 9px;min-height:32px;cursor:pointer;}
-    button.primary {background:var(--primary-color,#03a9f4);color:var(--text-primary-color,#fff);border:0;}
-    .entity-list {display:flex;flex-wrap:wrap;gap:5px;}
-    .chip {font-size:12px;display:inline-flex;align-items:center;gap:6px;background:var(--secondary-background-color,#eee);
-      border-radius:6px;padding:2px 5px;max-width:100%;overflow-wrap:anywhere;}
-    .chip button {min-height:20px;padding:0 4px;}
-    .add-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:end;}
-    .footer {display:flex;gap:8px;align-items:center;}
-    .footer select {flex:1;}
-    .warning {color:var(--warning-color,#f90);}
+    ha-icon-picker:not(:defined)+.icon-fallback {display:flex;}
+    .tiles-title {display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .tiles-title h3 {margin:0;font-size:15px;}
+    .tiles-title p {margin:3px 0 0;color:var(--secondary-text-color);font-size:12px;}
+    .count-badge {background:var(--secondary-background-color,var(--card-background-color,#fff));
+      color:var(--secondary-text-color);font-size:12px;padding:6px 10px;border-radius:18px;white-space:nowrap;}
+    .filter-row {display:grid;grid-template-columns:minmax(0,1fr) 126px;gap:8px;}
+    .filter-row input, .filter-row select {min-height:38px;}
+    .tile-list {display:grid;gap:7px;}
+    details.tile-item>summary {display:flex;align-items:center;gap:10px;padding:9px 11px;min-height:59px;}
+    details.tile-item>summary:hover,details.settings>summary:hover {background:var(--secondary-background-color,transparent);}
+    .tile-item.is-off {opacity:.68;}
+    .tile-item[hidden] {display:none !important;}
+    .tile-symbol {display:flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;border-radius:10px;
+      color:var(--tile-accent,var(--secondary-text-color));background:var(--secondary-background-color,rgba(0,0,0,.04));}
+    .tile-symbol ha-icon {--mdc-icon-size:20px;}
+    .tile-text {min-width:0;display:grid;gap:3px;flex:1;}
+    .tile-text strong {font-size:13px;line-height:1.35;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .tile-text small {font-size:11px;line-height:1.3;color:var(--secondary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .status {border-radius:20px;padding:4px 7px;background:var(--secondary-background-color,rgba(0,0,0,.04));
+      color:var(--secondary-text-color);font-size:10px;line-height:1.3;white-space:nowrap;}
+    .status.enabled {color:var(--success-color,var(--green-color,#3c9b60));}
+    .edit-body {display:grid;gap:16px;padding:15px;border-top:1px solid var(--divider-color,#ddd);}
+    .edit-section + .edit-section {border-top:1px solid var(--divider-color,#ddd);padding-top:15px;}
+    .hint {font-size:11px;line-height:1.5;margin:6px 0 0;color:var(--secondary-text-color);}
+    .entity-list {display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+    .chip {max-width:100%;display:inline-flex;align-items:center;gap:7px;border-radius:8px;
+      padding:5px 6px 5px 9px;background:var(--secondary-background-color,#eee);font-size:11px;overflow-wrap:anywhere;}
+    .chip button {border:0;background:transparent;color:inherit;font-weight:700;padding:2px 5px;min-height:22px;}
+    .add-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;}
+    button {font:inherit;font-size:12px;font-weight:600;min-height:35px;padding:7px 10px;
+      border:1px solid var(--divider-color,#ddd);border-radius:9px;
+      background:var(--secondary-background-color,var(--card-background-color,#fff));color:var(--primary-text-color);cursor:pointer;}
+    button:disabled {opacity:.35;cursor:not-allowed;}
+    button.primary {background:var(--primary-color,#039be5);color:var(--text-primary-color,#fff);border:0;}
+    .edit-actions {display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+    .edit-actions .spacer {flex:1;}
+    button.remove {color:var(--error-color,var(--red-color,#d22));}
+    .add-panel {display:grid;gap:9px;padding:14px;border:1px dashed var(--divider-color,#bbb);border-radius:12px;}
+    .add-panel strong {font-size:13px;}
+    .add-controls {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;}
+    .footer-note {font-size:11px;line-height:1.55;color:var(--secondary-text-color);margin:0;}
+    .no-results {border:1px dashed var(--divider-color,#ddd);border-radius:10px;padding:15px;
+      color:var(--secondary-text-color);font-size:12px;text-align:center;}
+    .advanced {padding-top:8px;}
+    .advanced summary {cursor:pointer;color:var(--secondary-text-color);font-size:12px;}
+    .advanced .check {margin-top:10px;}
+    @media (max-width:440px) {.filter-row {grid-template-columns:minmax(0,1fr) 112px;}
+      .version {padding:4px 6px;} .edit-actions button {flex:1;} }
+    @media (max-width:345px) {.fields {grid-template-columns:1fr;} .add-controls {grid-template-columns:1fr;}}
+    @media (prefers-reduced-motion:reduce) {.chevron {transition:none;}}
   `;
-  const sourceLabels={auto:'Automatisch erkennen',selected:'Entitäten auswählen',group:'Gruppe / Helfer verwenden'};
+  const sourceLabels={auto:'Automatische Erkennung',selected:'Entitäten auswählen',group:'Gruppe / Helfer'};
   class CentralOverviewEditor extends HTMLElement {
-    constructor() {super();this.attachShadow({mode:'open'});this._config=null;this._hass=null;this._lastEmitted='';}
+    constructor() {
+      super();
+      this.attachShadow({mode:'open'});
+      this._config=null;this._hass=null;this._lastEmitted='';
+      this._openTile=null;this._settingsOpen=false;this._advancedOpen=false;
+      this._searchQuery='';this._visibilityFilter='all';
+    }
     setConfig(config) {
       const raw=JSON.stringify(config);
-      if (raw === this._lastEmitted) return; // keep keyboard focus while editing
-      this._config={...createConfig(),...config, tiles:(config.tiles||[]).map(t=>({...t,icon:mdiIcon(t.icon,t.kind),entities:strings(t.entities)}))};
+      if (raw===this._lastEmitted) return;
+      this._config={...createConfig(),...config,
+        tiles:(config.tiles||[]).map(t=>({...t,icon:mdiIcon(t.icon,t.kind),entities:strings(t.entities)}))};
       this._render();
     }
     set hass(hass) {
-      const redraw=!this._hass;this._hass=hass;
-      if(redraw && this._config)this._render();
+      const first=!this._hass;this._hass=hass;
+      if (first && this._config) this._render();
       else this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(el=>{el.hass=hass;});
     }
-    get hass() {return this._hass;}
+    get hass(){return this._hass;}
     _emit(structural=false) {
       this._config={...this._config,tiles:[...this._config.tiles]};
       this._lastEmitted=JSON.stringify(this._config);
-      this.dispatchEvent(new CustomEvent('config-changed',{detail:{config:this._config},bubbles:true,composed:true}));
-      if (structural) this._render();
+      this.dispatchEvent(new CustomEvent('config-changed',
+        {detail:{config:this._config},bubbles:true,composed:true}));
+      if(structural) this._render();
     }
     _setTile(i,field,value,structural=false) {
       const previous=this._config.tiles[i];
-      // The native picker also lists installed custom icon collections; constrain
-      // the card to the built-in mdi: icons requested for universal distribution.
-      if (field==='icon') value=mdiIcon(value,previous.kind);
-      let tile={...previous, [field]:value};
-      if (field==='kind' && KINDS[value]) {
-        const oldDefaults=KINDS[previous.kind] || {};
-        const defaults=KINDS[value];
-        if (!previous.label || previous.label===oldDefaults.label) tile.label=defaults.label;
-        if (!previous.icon || previous.icon===oldDefaults.icon) tile.icon=defaults.icon;
-        if (!previous.tone || previous.tone===oldDefaults.tone || previous.tone==='auto')
+      if (!previous) return;
+      if(field==='icon') value=mdiIcon(value,previous.kind);
+      const tile={...previous,[field]:value};
+      if(field==='kind' && KINDS[value]) {
+        const oldDefaults=KINDS[previous.kind]||{}, defaults=KINDS[value];
+        if(!previous.label || previous.label===oldDefaults.label) tile.label=defaults.label;
+        if(!previous.icon || previous.icon===oldDefaults.icon) tile.icon=defaults.icon;
+        if(!previous.tone || previous.tone===oldDefaults.tone || previous.tone==='auto')
           tile.tone=['alarm','lock'].includes(value)?'auto':defaults.tone;
-        if (previous.source===oldDefaults.source) tile.source=defaults.source;
-        tile.entities=[];
-        delete tile.entity;
+        if(previous.source===oldDefaults.source) tile.source=defaults.source;
+        tile.entities=[];delete tile.entity;
       }
       this._config.tiles[i]=tile;
       this._emit(structural);
     }
+    _applyFilter() {
+      const term=this._searchQuery.trim().toLocaleLowerCase('de');
+      let found=0;
+      this.shadowRoot.querySelectorAll('details.tile-item').forEach(el=>{
+        const i=Number(el.dataset.i), t=this._config.tiles[i], meta=KINDS[t.kind]||{};
+        const enabled=t.enabled!==false;
+        const matchText=`${t.label||''} ${meta.label||''} ${t.kind} ${sourceLabels[t.source||meta.source]||''}`;
+        const match=matchText.toLocaleLowerCase('de').includes(term) &&
+          (this._visibilityFilter==='all' || (this._visibilityFilter==='visible'?enabled:!enabled));
+        el.hidden=!match;
+        if(match) found++;
+      });
+      const empty=this.shadowRoot.querySelector('#empty-filter');
+      if(empty) empty.hidden=found>0;
+      const counter=this.shadowRoot.querySelector('#filter-count');
+      if(counter) counter.textContent=`${found} von ${this._config.tiles.length} Kacheln`;
+    }
     _render() {
-      if (!this._config) return;
+      if(!this._config) return;
       const cfg=this._config;
-      const areas=Object.values(this._hass?.areas || {}).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-      const option=(value,label,current)=>`<option value="${esc(value)}" ${value===current?'selected':''}>${esc(label)}</option>`;
-      const tileHtml=cfg.tiles.map((tile,i)=>{
+      const areas=Object.values(this._hass?.areas||{}).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+      const option=(value,label,current)=>`<option value="${esc(value)}" ${String(value)===String(current)?'selected':''}>${esc(label)}</option>`;
+      const editorTile=(tile,i)=>{
         const k=KINDS[tile.kind]||KINDS.lights;
         const mode=tile.source||k.source;
-        const isGroup=mode==='group',isSelected=mode==='selected';
-        return `<details data-i="${i}"><summary>${tile.enabled===false?'○':'●'} ${esc(tile.label||k.label)} · ${esc(sourceLabels[mode]||mode)}</summary>
-          <div class="tile-editor" data-i="${i}">
-            <div class="actions"><label class="check" style="margin-right:auto"><input type="checkbox" data-field="enabled" ${tile.enabled!==false?'checked':''}>Anzeigen</label>
-            <button type="button" data-action="up" title="Nach oben" ${i===0?'disabled':''}>↑</button>
-            <button type="button" data-action="down" title="Nach unten" ${i===cfg.tiles.length-1?'disabled':''}>↓</button>
-            <button type="button" data-action="delete" title="Kachel entfernen">Entfernen</button></div>
-            <div class="fields">
-              <label>Typ<select data-field="kind">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,tile.kind)).join('')}</select></label>
-              <label>Datenquelle<select data-field="source">${Object.entries(sourceLabels).map(([v,d])=>option(v,d,mode)).join('')}</select></label>
-              <label>Untertitel<input data-field="label" value="${esc(tile.label??k.label)}" placeholder="${esc(k.label)}"></label>
-              <div class="wide"><ha-icon-picker data-field="icon" label="Symbol aus Home Assistant" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon-picker>
-                <label class="icon-fallback">Symbol (mdi:)<input data-field="icon" value="${esc(mdiIcon(tile.icon,tile.kind))}" placeholder="mdi:home"></label></div>
-              <label>Aktiv-Farbe (HA-Standard)<select data-field="tone">${['alarm','lock'].includes(tile.kind)?option('auto','Abhängig vom Zustand',tile.tone||'auto'):''}${Object.entries(COLOR_LABELS).map(([v,d])=>option(v,d,tile.tone||k.tone)).join('')}</select></label>
-              <label class="wide">Navigation (# oder /dashboard/...)<input data-field="navigation_path" value="${esc(tile.navigation_path||'')}" placeholder="#details"></label>
-              ${mode==='auto'?`<label>Bereich<select data-field="area">${option('','Alle Bereiche',tile.area||'')}${areas.map(a=>option(a.area_id||a.id,a.name,tile.area||'')).join('')}</select></label>
-                <label>Entitäts-ID beginnt mit (optional)<input data-field="prefix" value="${esc(tile.prefix||'')}" placeholder="z. B. light.wohn"></label>`:''}
-              ${(isGroup || ['alarm','lock'].includes(tile.kind)) ? `<label class="wide">${isGroup?'Gruppe/Helfer':'Einzelne Entität (optional)'}
-                <ha-entity-picker data-field="entity" allow-custom-entity value="${esc(tile.entity||'')}"></ha-entity-picker></label>`:''}
-              ${isSelected ? `<div class="wide">
-                <label>Ausgewählte Entitäten</label><div class="entity-list">${strings(tile.entities).map((id,j)=>`<span class="chip">${esc(id)}<button data-action="remove-entity" data-j="${j}" title="Entität entfernen">×</button></span>`).join('')}</div>
-                <div class="add-row"><ha-entity-picker data-field="new-entity" allow-custom-entity></ha-entity-picker><button data-action="add-entity">Hinzufügen</button></div>
-                <p class="help">Entitäten werden nur aus der Installation des jeweiligen Nutzers gelesen. Auch mehrere sind möglich.</p></div>`:''}
-              ${tile.kind==='shading' ? `<label class="wide">Automatik-Entität (optional)<ha-entity-picker data-field="automation_entity" value="${esc(tile.automation_entity||'')}"></ha-entity-picker></label>`:''}
-              ${tile.kind==='air' ? `<label class="wide">Gute Zustände (kommagetrennt)<input data-field="good_states" value="${esc(tile.good_states??'gut,good,ok,okay,ausgewogen')}"></label>
-                <label>Grenzwert für Zahlensensoren<input type="number" step="any" data-field="threshold" value="${esc(tile.threshold??'')}"></label>
-                <label>Warnung bei<select data-field="comparison">${option('above','Wert größer als',tile.comparison||'above')}${option('below','Wert kleiner als',tile.comparison||'above')}</select></label>`:''}
-              ${tile.kind==='vehicles'?`<label class="wide">Zustand, der „fährt“ bedeutet<input data-field="active_state" value="${esc(tile.active_state||'on')}" placeholder="on"></label>`:''}
-              ${tile.kind==='people'?`<label class="check wide"><input type="checkbox" data-field="include_zones" ${tile.include_zones?'checked':''}>Personen in anderen Zonen als „anwesend“ zählen</label>`:''}
+        const enabled=tile.enabled!==false;
+        const isSelected=mode==='selected',isGroup=mode==='group';
+        const displayName=tile.label??k.label;
+        const tone=tile.tone==='auto'?k.tone:(tile.tone||k.tone);
+        const color=COLOR_VARS[tone]||COLOR_VARS.info;
+        const sourceDetail=isSelected?`${strings(tile.entities).length} ausgewählt`:
+          isGroup?'Gruppe / Helfer':'Automatisch';
+        const advancedFields=[];
+        if(tile.kind==='shading')advancedFields.push(`<label class="control wide">Automatik-Entität (optional)<ha-entity-picker data-field="automation_entity" value="${esc(tile.automation_entity||'')}"></ha-entity-picker></label>`);
+        if(tile.kind==='air')advancedFields.push(`<label class="control wide">Gute Zustände (durch Komma trennen)
+           <input data-field="good_states" value="${esc(tile.good_states??'gut,good,ok,okay,ausgewogen')}"></label>
+           <label class="control">Grenzwert für Zahlensensoren
+           <input type="number" step="any" data-field="threshold" value="${esc(tile.threshold??'')}"></label>
+           <label class="control">Warnung bei<select data-field="comparison">${option('above','Wert größer als',tile.comparison||'above')}${option('below','Wert kleiner als',tile.comparison||'above')}</select></label>`);
+        if(tile.kind==='vehicles')advancedFields.push(`<label class="control wide">Zustand, der „fährt“ bedeutet
+          <input data-field="active_state" value="${esc(tile.active_state||'on')}" placeholder="on"></label>`);
+        if(tile.kind==='people')advancedFields.push(`<label class="check wide"><input type="checkbox" data-field="include_zones" ${tile.include_zones?'checked':''}>Personen in anderen Zonen als anwesend zählen</label>`);
+        const selectedFields=isSelected?`<div class="wide"><span class="control">Ausgewählte Entitäten</span>
+          <div class="entity-list">${strings(tile.entities).map((id,j)=>`<span class="chip">${esc(id)}<button type="button" data-action="remove-entity" data-j="${j}" title="Entität entfernen" aria-label="${esc(id)} entfernen">×</button></span>`).join('')}</div>
+          <div class="add-row"><ha-entity-picker data-field="new-entity" allow-custom-entity></ha-entity-picker>
+          <button type="button" data-action="add-entity">+ Hinzufügen</button></div>
+          <p class="hint">Du kannst mehrere Entitäten aus deiner Installation auswählen.</p></div>`:'';
+        return `<details class="tile-item ${enabled?'':'is-off'}" data-i="${i}" ${this._openTile===i?'open':''}>
+          <summary aria-label="Kachel ${i+1}: ${esc(displayName)} bearbeiten">
+            <div class="tile-symbol" style="--tile-accent:${color}"><ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon></div>
+            <div class="tile-text"><strong>${esc(displayName)}</strong><small>${esc(sourceDetail)}</small></div>
+            <span class="status ${enabled?'enabled':''}">${enabled?'Sichtbar':'Ausgeblendet'}</span>
+            <span class="chevron" aria-hidden="true">›</span>
+          </summary>
+          <div class="edit-body" data-i="${i}">
+            <label class="check"><input type="checkbox" data-field="enabled" ${enabled?'checked':''}>Kachel anzeigen</label>
+            <section class="edit-section">
+              <div class="section-heading"><strong>Allgemein</strong><small>Bezeichnung und Aussehen</small></div>
+              <div class="fields">
+                <label class="control">Kacheltyp<select data-field="kind">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,tile.kind)).join('')}</select></label>
+                <label class="control">Untertitel<input data-field="label" value="${esc(displayName)}" placeholder="${esc(k.label)}"></label>
+                <div class="control wide"><span>Symbol</span>
+                  <ha-icon-picker data-field="icon" label="Home-Assistant-Symbol" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon-picker>
+                  <label class="control icon-fallback">Symbol (mdi:)<input data-field="icon" value="${esc(mdiIcon(tile.icon,tile.kind))}" placeholder="mdi:home"></label></div>
+                <label class="control wide">Aktive Farbe<select data-field="tone">${['alarm','lock'].includes(tile.kind)?option('auto','Automatisch nach Zustand',tile.tone||'auto'):''}${Object.entries(COLOR_LABELS).map(([v,d])=>option(v,d,tile.tone||k.tone)).join('')}</select></label>
+              </div>
+            </section>
+            <section class="edit-section">
+              <div class="section-heading"><strong>Datenquelle</strong><small>Welche Geräte werden berücksichtigt?</small></div>
+              <div class="fields">
+                <label class="control wide">Auswahlmethode<select data-field="source">${Object.entries(sourceLabels).map(([v,d])=>option(v,d,mode)).join('')}</select></label>
+                ${mode==='auto'?`<label class="control">Bereich<select data-field="area">${option('','Alle Bereiche',tile.area||'')}${areas.map(a=>option(a.area_id||a.id,a.name,tile.area||'')).join('')}</select></label>
+                  <label class="control">Entitäts-Präfix (optional)<input data-field="prefix" value="${esc(tile.prefix||'')}" placeholder="z. B. light."></label>`:''}
+                ${(isGroup||['alarm','lock'].includes(tile.kind))?`<label class="control wide">${isGroup?'Gruppe / Helfer':'Einzelne Entität (optional)'}
+                  <ha-entity-picker data-field="entity" allow-custom-entity value="${esc(tile.entity||'')}"></ha-entity-picker></label>`:''}
+                ${selectedFields}
+              </div>
+              ${mode==='auto'?'<p class="hint">Passende Entitäten werden automatisch über Home Assistant erkannt. Über Bereich und Präfix kannst du die Auswahl eingrenzen.</p>':''}
+            </section>
+            <section class="edit-section">
+              <div class="section-heading"><strong>Navigation & Optionen</strong><small>Was passiert beim Antippen?</small></div>
+              <div class="fields"><label class="control wide">Navigationsziel (optional)
+                <input data-field="navigation_path" value="${esc(tile.navigation_path||'')}" placeholder="#details oder /dashboard/ansicht"></label>
+                ${advancedFields.join('')}
+              </div>
+            </section>
+            <div class="edit-actions">
+              <button type="button" data-action="up" title="Nach oben" ${i===0?'disabled':''}>↑ Hoch</button>
+              <button type="button" data-action="down" title="Nach unten" ${i===cfg.tiles.length-1?'disabled':''}>↓ Runter</button>
+              <button type="button" data-action="duplicate" title="Kachel duplizieren">Duplizieren</button>
+              <span class="spacer"></span>
+              <button type="button" class="remove" data-action="delete">Entfernen</button>
             </div>
-          </div></details>`;
-      }).join('');
-      this.shadowRoot.innerHTML=`<style>${EDIT_CSS}</style><div class="panel">
-        <div class="global"><h3>MYHS Central Card</h3><p class="help">Universelle Kacheln: Auto-Erkennung über Home-Assistant-Domänen und Geräteklassen, eigene Entitäten oder Gruppen. Keine festen Benutzer-IDs.</p>
-          <div class="fields"><label>Spalten<select data-global="columns">${[1,2,3,4].map(v=>option(String(v),String(v),String(cfg.columns||2))).join('')}</select></label>
-          <label>Abstand (Pixel)<input type="number" min="0" max="40" data-global="gap" value="${esc(cfg.gap??8)}"></label>
-          <label class="check wide"><input type="checkbox" data-global="show_labels" ${cfg.show_labels!==false?'checked':''}>Untertitel anzeigen</label>
-          <label class="check wide"><input type="checkbox" data-global="alarm_home_legacy" ${cfg.alarm_home_legacy?'checked':''}>Alte Alarm-Anzeige: armed_home als „unscharf“ (nicht empfohlen)</label>
-          </div></div>
-        <h3>Kacheln (${cfg.tiles.length})</h3>${tileHtml}
-        <div class="footer"><select id="new-kind">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
-          <button type="button" class="primary" id="add-tile">+ Kachel</button></div>
-        <p class="help">Für Fahrzeuge, Wecker und Raumluft ist eine Datenquelle notwendig. Audio und Fernseher werden automatisch nur erkannt, wenn die Geräteklasse zugeordnet ist. · Version 1.1.2</p>
+          </div>
+        </details>`;
+      };
+      const visible=cfg.tiles.filter(t=>t.enabled!==false).length;
+      this.shadowRoot.innerHTML=`<style>${EDIT_CSS}</style><div class="editor">
+        <header class="intro">
+          <div class="brand-icon"><ha-icon icon="mdi:view-dashboard-outline"></ha-icon></div>
+          <div class="intro-copy"><h3>MYHS Central Card</h3><p>Deine zentrale Smart-Home-Übersicht</p></div>
+          <span class="version">Version 1.1.2</span>
+        </header>
+        <details class="settings" ${this._settingsOpen?'open':''}>
+          <summary><span class="settings-icon"><ha-icon icon="mdi:tune-variant"></ha-icon></span>
+            <span class="settings-summary"><strong>Darstellung</strong>
+            <small>${esc(cfg.columns||2)} Spalten · ${esc(cfg.gap??8)} px Abstand</small></span><span class="chevron" aria-hidden="true">›</span></summary>
+          <div class="settings-body">
+            <div class="fields"><label class="control">Spalten<select data-global="columns">${[1,2,3,4].map(v=>option(v,v,cfg.columns||2)).join('')}</select></label>
+              <label class="control">Kachelabstand (px)<input type="number" min="0" max="40" data-global="gap" value="${esc(cfg.gap??8)}"></label>
+              <label class="check wide"><input type="checkbox" data-global="show_labels" ${cfg.show_labels!==false?'checked':''}>Untertitel anzeigen</label>
+            </div>
+            <details class="advanced" ${this._advancedOpen?'open':''}><summary>Erweiterte Einstellungen</summary>
+              <label class="check"><input type="checkbox" data-global="alarm_home_legacy" ${cfg.alarm_home_legacy?'checked':''}>Alte Alarmanzeige für „armed_home“ verwenden</label>
+              <p class="check-subtext">Nur für bestehende Sonderkonfigurationen. Home Assistant interpretiert diesen Zustand normalerweise als scharf geschaltet.</p>
+            </details>
+          </div>
+        </details>
+        <div class="tiles-title"><div><h3>Kacheln</h3><p>Antippen, um die Einstellungen zu öffnen</p></div>
+          <span class="count-badge">${visible} / ${cfg.tiles.length} sichtbar</span></div>
+        <div class="filter-row"><input type="search" id="tile-search" aria-label="Kacheln suchen" placeholder="Kacheln suchen …">
+          <select id="tile-filter" aria-label="Kacheln filtern">${option('all','Alle',this._visibilityFilter)}${option('visible','Sichtbar',this._visibilityFilter)}${option('hidden','Ausgeblendet',this._visibilityFilter)}</select></div>
+        <div class="tile-list">${cfg.tiles.map(editorTile).join('')}
+          <div id="empty-filter" class="no-results" hidden>Keine passenden Kacheln gefunden.</div></div>
+        <div class="add-panel"><strong>Neue Kachel hinzufügen</strong>
+          <div class="add-controls"><select id="new-kind" aria-label="Neuen Kacheltyp wählen">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
+            <button type="button" class="primary" id="add-tile">+ Hinzufügen</button></div></div>
+        <p class="footer-note" id="filter-count"></p>
+        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.2</p>
       </div>`;
+      this.shadowRoot.querySelector('#tile-search').value=this._searchQuery;
+      this.shadowRoot.querySelector('#tile-search').addEventListener('input',e=>{this._searchQuery=e.target.value;this._applyFilter();});
+      this.shadowRoot.querySelector('#tile-filter').addEventListener('change',e=>{this._visibilityFilter=e.target.value;this._applyFilter();});
+      this._applyFilter();
       this.shadowRoot.querySelectorAll('ha-icon-picker').forEach(el=>{
-        el.value=el.getAttribute('value') || '';
+        el.value=el.getAttribute('value')||'';
         el.addEventListener('value-changed',e=>{
           e.stopPropagation();
-          const i=Number(el.closest('[data-i]').dataset.i);
-          this._setTile(i,'icon',e.detail?.value || '');
+          const i=Number(el.closest('details.tile-item').dataset.i);
+          this._setTile(i,'icon',e.detail?.value||'');
         });
       });
       this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(el=>{
-        if (this._hass) el.hass=this._hass;
-        // Property is the preferred value binding for frontend custom elements.
-        if (el.dataset.field!=='new-entity') el.value=el.getAttribute('value')||'';
+        if(this._hass) el.hass=this._hass;
+        if(el.dataset.field!=='new-entity') el.value=el.getAttribute('value')||'';
         el.addEventListener('value-changed',e=>{
           e.stopPropagation();
-          if (el.dataset.field==='new-entity') {el.dataset.pending=e.detail?.value||'';return;}
-          const i=Number(el.closest('[data-i]').dataset.i);
+          if(el.dataset.field==='new-entity'){el.dataset.pending=e.detail?.value||'';return;}
+          const i=Number(el.closest('details.tile-item').dataset.i);
           this._setTile(i,el.dataset.field,e.detail?.value||'');
         });
       });
-      const delegated=(e)=>{
+      const panel=this.shadowRoot.querySelector('.editor');
+      panel.addEventListener('toggle',e=>{
+        if(e.target?.matches?.('details.tile-item')) {
+          const d=e.target, i=Number(d.dataset.i);
+          if(d.open){
+            this._openTile=i;
+            this.shadowRoot.querySelectorAll('details.tile-item[open]').forEach(other=>{if(other!==d)other.open=false;});
+          }else if(this._openTile===i) this._openTile=null;
+        } else if(e.target?.matches?.('details.settings')) this._settingsOpen=e.target.open;
+        else if(e.target?.matches?.('details.advanced')) this._advancedOpen=e.target.open;
+      },true);
+      const delegated=e=>{
         const el=e.target;
         const globalField=el.dataset?.global;
-        if (globalField) {
-          this._config[globalField]=el.type==='checkbox' ? el.checked : el.type==='number'||globalField==='columns' ? Number(el.value) : el.value;
+        if(globalField){
+          this._config[globalField]=el.type==='checkbox'?el.checked:
+            el.type==='number'||globalField==='columns'?Number(el.value):el.value;
           this._emit();return;
         }
         const field=el.dataset?.field;
-        if (!field || field==='new-entity' || ['ha-entity-picker','ha-icon-picker'].includes(el.localName)) return;
-        const i=Number(el.closest('[data-i]').dataset.i);
-        const val=el.type==='checkbox' ? el.checked : el.value;
+        if(!field||field==='new-entity'||['ha-entity-picker','ha-icon-picker'].includes(el.localName))return;
+        const detail=el.closest('details.tile-item');if(!detail)return;
+        const i=Number(detail.dataset.i);
+        const val=el.type==='checkbox'?el.checked:el.value;
         this._setTile(i,field,val,['kind','source','enabled'].includes(field));
       };
-      // 'change' for selects/checkboxes, 'input' for text/number. Do not rerender on every keypress.
-      const panel=this.shadowRoot.querySelector('.panel');
       panel.addEventListener('change',delegated);
       panel.addEventListener('input',e=>{
-        if (!['INPUT','TEXTAREA'].includes(e.target.tagName) || e.target.type==='checkbox') return;
+        if(!['INPUT','TEXTAREA'].includes(e.target.tagName)||e.target.type==='checkbox'||!e.target.dataset?.field&&!e.target.dataset?.global)return;
         delegated(e);
       });
       panel.addEventListener('click',e=>{
         const el=e.target.closest('button');if(!el)return;
-        if (el.id==='add-tile') {this._config.tiles.push(createTile(this.shadowRoot.querySelector('#new-kind').value));this._emit(true);return;}
-        const action=el.dataset.action;if(!action)return;
-        const container=el.closest('[data-i]');if(!container)return;
-        const i=Number(container.dataset.i);
-        if (action==='delete') this._config.tiles.splice(i,1);
-        if (action==='up' && i>0) [this._config.tiles[i-1],this._config.tiles[i]]=[this._config.tiles[i],this._config.tiles[i-1]];
-        if (action==='down' && i<this._config.tiles.length-1) [this._config.tiles[i+1],this._config.tiles[i]]=[this._config.tiles[i],this._config.tiles[i+1]];
-        if (action==='remove-entity') this._config.tiles[i].entities.splice(Number(el.dataset.j),1);
-        if (action==='add-entity') {
-          const picker=container.querySelector('ha-entity-picker[data-field="new-entity"]');
-          const id=picker?.dataset.pending || picker?.value || '';
-          if (!id) return;
-          this._config.tiles[i].entities=uniq([...(this._config.tiles[i].entities||[]),id]);
+        if(el.id==='add-tile'){
+          this._config.tiles.push(createTile(this.shadowRoot.querySelector('#new-kind').value));
+          this._openTile=this._config.tiles.length-1;
+          this._emit(true);return;
         }
+        const action=el.dataset.action;if(!action)return;
+        const container=el.closest('details.tile-item');if(!container)return;
+        const i=Number(container.dataset.i);
+        if(action==='delete'){
+          this._config.tiles.splice(i,1);this._openTile=null;
+        } else if(action==='up'&&i>0){
+          [this._config.tiles[i-1],this._config.tiles[i]]=[this._config.tiles[i],this._config.tiles[i-1]];
+          this._openTile=i-1;
+        } else if(action==='down'&&i<this._config.tiles.length-1){
+          [this._config.tiles[i+1],this._config.tiles[i]]=[this._config.tiles[i],this._config.tiles[i+1]];
+          this._openTile=i+1;
+        } else if(action==='duplicate'){
+          this._config.tiles.splice(i+1,0,JSON.parse(JSON.stringify(this._config.tiles[i])));
+          this._openTile=i+1;
+        } else if(action==='remove-entity'){
+          this._config.tiles[i].entities=strings(this._config.tiles[i].entities).filter((_,j)=>j!==Number(el.dataset.j));
+          this._openTile=i;
+        } else if(action==='add-entity'){
+          const picker=container.querySelector('ha-entity-picker[data-field="new-entity"]');
+          const id=picker?.dataset.pending||picker?.value||'';
+          if(!id)return;
+          this._config.tiles[i].entities=uniq([...(this._config.tiles[i].entities||[]),id]);
+          this._openTile=i;
+        } else return;
         this._emit(true);
       });
     }
