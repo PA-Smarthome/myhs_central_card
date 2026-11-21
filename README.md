@@ -1,111 +1,88 @@
-# MYHS Central Card – universelle Home-Assistant-Zentralübersicht
+# MYHS Central Card
 
-Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln** und **vollständigem visuellem Editor**. Die Karte ist für jede Home-Assistant-Installation gedacht. Sie enthält **keine festen Benutzer- oder Entitäts-IDs** und benötigt **keine `button-card`**.
+**MYHS Cards for Home Assistant**
 
-![Vorschau mit frei erfundenen Beispieldaten](images/preview.png)
+Eine moderne, universelle Dashboard-Karte für [Home Assistant](https://www.home-assistant.io/) mit **16 intelligenten Status-Kacheln**, sanften Farbverläufen und einem vollständig integrierten **visuellen Editor**. Organisiere dein Smart Home in einer übersichtlichen Ansicht – mit deinen eigenen Entitäten, Gruppen und Bereichen.
 
-### Design – Version 1.1.2
+**Version 1.1.2 · Ohne `custom:button-card` · Home-Assistant-Icons (`mdi:`) · Für helle und dunkle Themes**
 
-- Der **ursprüngliche Farbverlauf** ist zurück (135°; HA-Theme-Farbe bei 32 % von 0–14 %, auslaufend bis 68 %), entsprechend der ursprünglichen Vorlage.
-- Kachel-Mindesthöhe jetzt **102 px** mit gut lesbarer, kompakter Darstellung – ein ausgewogener Mittelweg.
-- Icon 25 px, Status 16 px und Untertitel 13 px: wieder besser lesbar.
-- Alle **16 Kacheln**, der unveränderte **visuelle Editor** sowie HA-Standardfarben und `mdi:`-Icons bleiben erhalten.
-- Bisherige Konfigurationen bleiben kompatibel; keine neuen Pflichtfelder.
+![MYHS Central Card – Vorschau mit Beispieldaten](images/preview.png)
 
+> Die Vorschau zeigt Beispielzustände. Die Karte enthält keine fest codierten Entitäts-IDs und ist nicht auf eine bestimmte Home-Assistant-Installation zugeschnitten.
 
-## Visuell bearbeiten – direkt im Home-Assistant-Menü
+## Highlights
 
-![Visueller Editor (Demonstrationsansicht)](images/editor.png)
+- **16 konfigurierbare Kacheltypen** – unter anderem Sicherheit, Fenster, Licht, Heizung, Medien, Präsenz und Automationen.
+- **Visuell konfigurierbar** – Kacheln hinzufügen, entfernen, sortieren, benennen und ein- oder ausblenden; ohne manuelles YAML.
+- **Flexible Datenquellen** – automatische Erkennung, eigene Entitäten oder Gruppen/Helfer.
+- **Native Home-Assistant-Icons** – `mdi:`-Symbole direkt über den Icon-Picker wählen.
+- **Theme-kompatible Farben** – ausschließlich Home-Assistant-Farbvariablen, keine `--custom_*`-Farben.
+- **Individuelle Navigation** – pro Kachel ein Dashboard-Ziel oder einen Anker hinterlegen.
+- **Anpassbares Layout** – 1 bis 4 Spalten, Abstände und Untertitel nach Bedarf.
+- **Reine Statuskarte** – keine unbeabsichtigten Geräte- oder Alarmaktionen beim Antippen.
 
-1. Dashboard öffnen → **Dashboard bearbeiten**.
-2. **Karte hinzufügen** → **MYHS Central Card** auswählen.
-3. Für eine bestehende Karte **Karte bearbeiten** öffnen.
-4. Im **visuellen Menü** die gewünschte Kachel aufklappen. Dort kann man:
-   - Kacheltyp wählen, Kacheln **hinzufügen / entfernen / ein- und ausblenden / umsortieren**.
-   - **Datenquelle** wählen: automatische Erkennung, ausgewählte Entitäten oder Gruppen/Helfer.
-   - Eigene **Entitäten aus dem Home-Assistant-Entitätswähler** zuordnen (auch mehrere).
-   - **Bereich** filtern (bei automatischer Erkennung), optional Entitäts-Präfix filtern.
-   - **Icon** aus dem **nativen Home-Assistant-Symbolwähler** (`mdi:`), **Beschriftung**, **Navigationsziel** und **aktive Farbe** festlegen.
-   - **Spaltenzahl** (1–4), Abstand und die Anzeige von Untertiteln festlegen.
-5. **Speichern**. Die Karte erzeugt die Lovelace-Konfiguration selbst – **kein YAML erforderlich**.
+## Visueller Editor
 
-### Die 16 Kacheltypen
+![MYHS Central Card – visueller Editor](images/editor.png)
 
-| Typ | Angezeigter Status | Automatische Erkennung |
+1. Öffne dein Home-Assistant-Dashboard und wähle **Dashboard bearbeiten**.
+2. Klicke auf **Karte hinzufügen** und wähle **MYHS Central Card** aus.
+3. Öffne die Einstellungen einer Kachel und wähle Datenquelle, Entitäten, Symbol, Farbe und Navigationsziel.
+4. Passe Reihenfolge, Anzahl der Spalten und Abstände an und speichere die Karte.
+
+Alle Einstellungen erfolgen im visuellen Home-Assistant-Karteneditor. YAML ist optional.
+
+## Unterstützte Kacheln
+
+| Kachel | Anzeige | Automatische Erkennung / Datenquelle |
 | --- | --- | --- |
-| Sicherheit | Zustand der Alarmzentrale | `alarm_control_panel` (bei mehreren auswählen) |
-| Fenster | Geöffnete Fenster | `binary_sensor` mit `device_class: window/opening` |
-| Licht | Aktive Leuchten nach Bereich | `light` |
-| Energie | Aktive Steckdosen/Geräte | `switch` mit Geräteklasse `outlet/plug` |
-| Heizung | Räume in Heiz-/Auto-Modus | `climate` mit `heat`, ohne `cool` in `hvac_modes` |
-| Klima | Kühlen / Heizen / Lüften | `climate` mit `cool` in `hvac_modes` |
-| Audio | Wiedergabe/Pause in Räumen | `media_player` mit Geräteklasse `speaker/receiver` |
-| Beschattung | Offen, geschlossen, teilweise | `cover`; optionale Automatik-Entität |
-| Media | Fernseher an | `media_player` mit Geräteklasse `tv` |
-| Lüftung/Raumluft | Räume/Sensoren außerhalb der Grenzwerte | Entitäten auswählen, Grenzwert oder gute Zustände festlegen |
-| Zutritt | Tür verriegelt / entriegelt / blockiert | `lock` (bei mehreren auswählen) |
-| Wecker | Anzahl aktiver Wecker | Entitäten auswählen |
-| Präsenz | Bewegung in Räumen | `binary_sensor` mit `motion/presence/occupancy` |
-| Anwesenheit | Personen anwesend | `person` (andere Zonen optional) |
-| Fahrzeuge | Fahrzeuge in gewähltem Zustand | Entitäten auswählen, Fahrzustand definieren |
+| Sicherheit | Zustand der Alarmanlage | `alarm_control_panel` |
+| Fenster | Anzahl geöffneter Fenster | `binary_sensor` mit `window` / `opening` |
+| Licht | Aktive Leuchten oder Räume | `light` |
+| Energie | Eingeschaltete Steckdosen und Geräte | `switch` mit `outlet` / `plug` |
+| Heizung | Heizende Räume / Automatikmodus | passende `climate`-Entitäten |
+| Klima | Kühlen, Heizen, Lüften | `climate` mit Kühlfunktion |
+| Audio | Wiedergabe oder Pause | `media_player` mit `speaker` / `receiver` |
+| Beschattung | Offen, geschlossen oder teilweise geöffnet | `cover` |
+| Media | Aktive Fernseher | `media_player` mit `tv` |
+| Lüftung / Raumluft | Luftqualität oder definierte Abweichungen | ausgewählte Sensoren und Grenzwerte |
+| Zutritt | Verriegelt, entriegelt oder blockiert | `lock` |
+| Wecker | Aktive Wecker | frei zugeordnete Entitäten |
+| Präsenz | Erfasste Bewegung / Anwesenheit | `binary_sensor` mit `motion` / `presence` / `occupancy` |
+| Anwesenheit | Anwesende Personen | `person` |
+| Fahrzeuge | Fahrzeuge im gewählten Zustand | frei zugeordnete Entitäten |
 | Automatik | Aktivierte Automationen | `automation` |
 
-**Hinweis zur automatischen Erkennung:** Diese nutzt Home-Assistant-Domänen und Geräteklassen, keine Wörter aus Entitäts-IDs wie `sonos` oder `heizung`. Geräte ohne passende Geräteklasse bitte über **„Entitäten auswählen“** bzw. **„Gruppe / Helfer verwenden“** zuordnen. Automatisch erkannte Aggregat-Entitäten mit `entity_id`-Mitgliedern werden zum Zählen auf ihre Mitglieder aufgelöst. Wenn die Installation keine Geräte-/Bereichszuordnung bietet, wird statt der Anzahl **Räume** ggf. die Anzahl **Geräte** angezeigt.
+**Hinweis:** Die automatische Erkennung verwendet Home-Assistant-Domänen und Geräteklassen. Geräte ohne passende Geräteklasse können im Editor über **Entitäten auswählen** oder **Gruppe/Helfer verwenden** eingebunden werden. Wenn keine Raumzuordnung vorliegt, kann statt der Raumanzahl die Geräteanzahl erscheinen. Manche Kacheltypen benötigen bewusst eine manuelle Datenquelle.
 
-## Icons aus Home Assistant
+## Design und Farben
 
-Alle 16 Kacheln benutzen ausschließlich **integrierte Material Design Icons** (Präfix `mdi:`), die Home Assistant bereits mitliefert. Im visuellen Editor öffnet der Nutzer pro Kachel den **nativen Home-Assistant-Icon-Picker**, sucht ein Symbol und wählt es aus. Zusätzliche Icon-Sets (`local:`, `hacs:`, Iconify usw.) sind **nicht erforderlich** und werden nicht verwendet. Ist der Icon-Picker in einer älteren Frontend-Version nicht geladen, erscheint als Fallback ein Eingabefeld für `mdi:`-Symbole.
+MYHS Central Card verwendet einen **135°-Farbverlauf**, der oben links am stärksten ist und weich ausläuft. Der Verlauf basiert auf der ausgewählten Home-Assistant-Theme-Farbe. Die Kacheln sind auf eine gut lesbare, platzsparende Darstellung ausgelegt.
 
-## Farben
-
-Verwendet ausschließlich die **vorhandenen Home-Assistant-Theme-Variablen**: `--success-color`, `--error-color`, `--warning-color`, `--info-color`, `--orange-color`, `--cyan-color`, `--purple-color`, `--pink-color` und weitere Standard-Palettenfarben (`--red-color`, `--green-color`, `--amber-color`, …). **Keine `--custom_*`-Variablen.** Die jeweils aktive Farbe kann im visuellen Editor eingestellt werden. Alarm und Schloss benutzen standardmäßig **zustandsabhängige Farben**. Die Farbverläufe werden per CSS erzeugt, passend zu hellen und dunklen Themes.
-
-## GitHub-Upload (für HACS/Marketplace)
-
-Erstelle auf GitHub ein **öffentliches Repository**, zum Beispiel `lovelace-central-overview-card`. Entpacke die Projekt-ZIP und lade **den Inhalt des Ordners `lovelace-central-overview-card` direkt in das Repository-Hauptverzeichnis** hoch. Nicht das ZIP selbst hochladen und nicht den ganzen Ordner eine Ebene tiefer anlegen.
-
-```text
-.github/workflows/validate.yml
-dist/central-overview-card.js
-images/preview.png
-images/editor.png
-examples/three-tiles.yaml
-tests/browser.html
-tests/browser_smoke.py
-tests/smoke.cjs
-hacs.json
-README.md
-LICENSE
-```
-
-Über **Add file → Upload files → Commit changes** kannst du Dateien hochladen. GitHub lädt versteckte `.github`-Ordner über Drag-and-drop je nach Browser unterschiedlich zuverlässig hoch; kontrolliere, dass `.github/workflows/validate.yml` vorhanden ist. Alternativ lege sie in GitHub per **Add file → Create new file** mit dem Pfad `.github/workflows/validate.yml` an.
-
-Erstelle danach optional unter **Releases → Draft a new release** ein Release, z. B. `v1.1.2`. Dieses ist für die öffentliche Verteilung und Updates sinnvoll. Anschließend das Repository in HACS/Marketplace als benutzerdefiniertes Repository vom Typ **Dashboard** hinzufügen.
+Verwendet werden unter anderem `--success-color`, `--error-color`, `--warning-color`, `--info-color` sowie weitere Home-Assistant-Palettenfarben. Farben, Icons und Untertitel lassen sich über den Editor anpassen. Zusätzliche Icon-Sets sind nicht erforderlich.
 
 ## Installation
 
-### Option A – über HACS / Marketplace mit öffentlichem GitHub-Repository
+### Über HACS / Home Assistant Marketplace
 
-1. Den Inhalt dieses Projektordners in ein **eigenes öffentliches GitHub-Repository** hochladen, z. B. `lovelace-central-overview-card`. Die `hacs.json` muss **im Repository-Hauptverzeichnis** liegen, die JavaScript-Datei in `dist/`.
-2. Das Repository in HACS/Marketplace als **benutzerdefiniertes Repository vom Typ Dashboard** hinzufügen. Je nach Home-Assistant-Version heißt der Bereich **HACS** oder **Marketplace**.
-3. Die Karte installieren und Home Assistant im Browser neu laden.
-4. Die Karte in **Dashboard bearbeiten → Karte hinzufügen** auswählen. Der visuelle Editor ist direkt enthalten.
+1. Öffne **HACS** bzw. **Marketplace** in Home Assistant.
+2. Füge das öffentliche GitHub-Repository als **benutzerdefiniertes Dashboard-Repository** hinzu, sofern es noch nicht im Katalog geführt wird.
+3. Installiere **MYHS Central Card** und lade dein Dashboard vollständig neu.
+4. Wähle **MYHS Central Card** unter **Dashboard bearbeiten → Karte hinzufügen** aus.
 
-**Wichtig:** Ein ZIP kann **nicht einfach** in HACS als Repository importiert werden. HACS/Marketplace installieren aus einem GitHub-Repository; das ZIP enthält die Dateien, die man dort hochlädt.
+Für die Installation über HACS ist ein öffentliches GitHub-Repository erforderlich; eine ZIP-Datei lässt sich nicht unmittelbar als HACS-Repository importieren.
 
-Zur Vorbereitung der öffentlichen Veröffentlichung ist eine GitHub-Action `.github/workflows/validate.yml` enthalten. Eine Aufnahme in den öffentlichen HACS-Katalog muss separat beantragt werden und wird nicht durch das ZIP garantiert.
+### Manuelle Installation
 
-### Option B – sofort lokal (ohne GitHub)
+1. Kopiere `dist/central-overview-card.js` nach `/config/www/central-overview-card.js` (Ordner gegebenenfalls anlegen).
+2. Registriere unter **Einstellungen → Dashboards → Ressourcen** ein **JavaScript-Modul** mit der URL `/local/central-overview-card.js`.
+3. Lade das Dashboard neu und füge **MYHS Central Card** im Karteneditor hinzu.
 
-1. Nur `dist/central-overview-card.js` in Home Assistant nach `/config/www/central-overview-card.js` kopieren (gegebenenfalls `www` anlegen).
-2. Unter **Einstellungen → Dashboards → Ressourcen** eine Ressource hinzufügen:
-   - URL: `/local/central-overview-card.js`
-   - Typ: **JavaScript-Modul**
-3. Browser vollständig neu laden und die Karte im visuellen Dashboard-Editor hinzufügen.
+Bei Bedarf muss der erweiterte Modus im Home-Assistant-Profil aktiviert werden, damit die Ressourcenverwaltung sichtbar ist.
 
-Falls der Reiter **Ressourcen** nicht sichtbar ist, muss eventuell der erweiterte Modus im Home-Assistant-Profil aktiviert werden; die genaue Oberfläche kann je nach Version abweichen.
+## Beispielkonfiguration (optional)
 
-### Mini-YAML-Beispiel (optional, nicht nötig für den Editor)
+Du kannst die Karte vollständig visuell konfigurieren. Dieses Beispiel zeigt eine reduzierte Ansicht mit drei Kacheln:
 
 ```yaml
 type: custom:central-overview-card
@@ -122,45 +99,75 @@ tiles:
     source: auto
     tone: warning
   - kind: people
-    label: Zuhause
+    label: Anwesenheit
     source: auto
     tone: pink
 ```
 
-Die **Standardkonfiguration** enthält automatisch alle 16 Kacheln – mit dem visuellen Editor braucht man nichts von Hand einzutragen.
+Ohne eigene `tiles`-Konfiguration zeigt die Karte standardmäßig alle 16 Kacheltypen an.
 
-## Eigenschaften für Fortgeschrittene
+### Erweiterte Optionen
 
-- `tiles[].source`: `auto`, `selected`, `group`
-- `tiles[].entities`: Array von Entitäts-IDs bei `selected`
-- `tiles[].entity`: Gruppen-/Helfer-Entität bei `group`, optional Alarm oder Schloss bei `auto`
-- `tiles[].area`: Bereich-ID zum Filtern bei `auto`
-- `tiles[].prefix`: optionaler ID-Präfix-Filter bei `auto`
-- `tiles[].automation_entity`: Entität der Beschattungsautomatik
-- `tiles[].good_states`: erlaubte Textzustände bei der Raumluftkarte, durch Kommata getrennt
-- `tiles[].threshold` und `tiles[].comparison`: numerischer Grenzwert (`above` oder `below`)
-- `tiles[].active_state`: Bewegungszustand bei Fahrzeugen, z. B. `on` oder `off`
-- `alarm_home_legacy`: veraltete Anzeige des Zustands `armed_home` als „unscharf“; **standardmäßig deaktiviert** (Home Assistant interpretiert diesen Zustand als „scharf zu Hause“)
+| Option | Bedeutung |
+| --- | --- |
+| `tiles[].source` | `auto`, `selected` oder `group` |
+| `tiles[].entities` | Liste eigener Entitäts-IDs bei `selected` |
+| `tiles[].entity` | Entität einer Gruppe / eines Helfers |
+| `tiles[].area` | Bereichsfilter für automatische Erkennung |
+| `tiles[].prefix` | Optionaler Entitäts-ID-Präfix |
+| `tiles[].automation_entity` | Optionale Automatik-Entität der Beschattung |
+| `tiles[].good_states` | Als gut geltende Textzustände bei Raumluft |
+| `tiles[].threshold` / `tiles[].comparison` | Grenzwert und Vergleichsrichtung |
+| `tiles[].active_state` | Gewünschter Aktivzustand, zum Beispiel bei Fahrzeugen |
+| `alarm_home_legacy` | Legacy-Anzeige von `armed_home` als „unscharf“; standardmäßig aus |
 
-Die Status-Karten sind **nur zur Anzeige und Navigation** gedacht. Ein Klick auf eine Kachel kann zu einer Home-Assistant-Ansicht oder einem Hash-Anker führen; er schaltet keine Geräte oder Sicherheitsfunktionen.
+**Sicherheit:** `armed_home` bedeutet in Home Assistant „scharf zu Hause“. Die Legacy-Darstellung sollte nur verwendet werden, wenn sie bewusst gewünscht ist. Die Karte dient der **Anzeige und Navigation** und schaltet keine Geräte.
 
-## Tests
+## GitHub-Veröffentlichung
+
+Die Projektdateien gehören direkt ins **Hauptverzeichnis** deines öffentlichen GitHub-Repositories:
+
+```text
+.github/workflows/validate.yml
+dist/central-overview-card.js
+images/preview.png
+images/preview-dark.png
+images/editor.png
+examples/three-tiles.yaml
+tests/
+hacs.json
+README.md
+GITHUB-UPLOAD.md
+LICENSE
+```
+
+Die `hacs.json` muss im Hauptverzeichnis liegen. Für die Veröffentlichung einer bestimmten Version erstelle unter **GitHub → Releases → Draft a new release** einen Release-Tag, zum Beispiel `v1.1.2`, und veröffentliche ihn als reguläres Release.
+
+**GitHub-Beschreibung (About → Description):** `MYHS Cards for Home Assistant`
+
+Die kurze Beschreibung im GitHub-About-Bereich wird **separat auf GitHub** eingestellt. Eine Änderung der `README.md` allein verändert diesen Repository-Beschreibungstext nicht. Auch die in HACS angezeigte Release-Version stammt aus GitHub – nicht aus der Versionsangabe im Karteneditor. Ohne verfügbares Release kann stattdessen eine Git-Commit-Kennung erscheinen.
+
+Weitere Upload-Hinweise findest du in [`GITHUB-UPLOAD.md`](GITHUB-UPLOAD.md).
+
+## Aktualisierung und Cache
+
+Wenn nach einem Update noch die alte Karte angezeigt wird, prüfe zuerst, ob die neue Version wirklich in HACS installiert wurde. Schließe anschließend die Home-Assistant-App vollständig und öffne sie neu. Im visuellen Editor zeigt diese Ausgabe **Version 1.1.2** an.
+
+Bei einer manuellen Installation kann eine neue Ressourcen-URL wie `/local/central-overview-card.js?v=112` helfen, zwischengespeicherte JavaScript-Dateien zu umgehen.
+
+> **Release-Hinweis:** Falls im Repository bereits höhere Tags (z. B. `v1.4.4`) existieren, wird `v1.1.2` unter Umständen nicht als Update erkannt. Plane die Release-Reihenfolge entsprechend. Der technische Kartentyp bleibt für bestehende Dashboards `custom:central-overview-card`.
+
+## Entwicklung und Tests
 
 ```bash
 node --check dist/central-overview-card.js
 node tests/smoke.cjs
-# Zusätzlich optional: Python + Playwright + Chromium
+# Optional: Browser-Test mit Playwright und Chromium
 python tests/browser_smoke.py
 ```
 
-Die Beispielbilder wurden in einem lokalen Browser aus dieser Karte mit **synthetischen Testzuständen** erzeugt. Die JavaScript-Syntax, Zustandsberechnungen und Editor-Ereignisse wurden geprüft. **Nicht** in einer produktiven Home-Assistant-Installation oder über den öffentlichen HACS-Prozess getestet.
+Syntax, Statuslogik und das Verhalten des visuellen Editors wurden lokal getestet. Die Vorschaubilder zeigen synthetische Daten. Ein Test in einer produktiven Home-Assistant-Installation und der vollständige öffentliche HACS-Veröffentlichungsprozess stehen noch aus.
 
 ## Lizenz
 
-MIT, siehe `LICENSE`.
-
-### iPhone / iOS: alte Version aus dem Cache entfernen
-
-Falls weiterhin farbige Ränder sichtbar sind, läuft möglicherweise noch die alte Version. Öffne den visuellen Karteneditor und kontrolliere die Kennzeichnung **Version 1.1.2** im unteren Hinweistext. Fehlt sie, hat Home Assistant die Datei noch nicht aktualisiert. Nach GitHub-Release die Karte auch **in HACS aktualisieren** und die Home-Assistant-App ganz schließen und neu öffnen. Bei manueller Installation `/local/central-overview-card.js?v=112` als Ressourcen-URL verwenden. Beim Wechsel der Ressource anschließend die App vollständig neu laden.
-
-**Versionshinweis:** Der sichtbare Kartenname lautet **MYHS Central Card**, die Anzeige im Editor **Version 1.1.2**. Der technische Kartentyp `custom:central-overview-card` und die Dateinamen bleiben unverändert, damit bestehende Dashboards kompatibel bleiben. Liegen auf GitHub bereits Releases mit höheren Versionsnummern (zum Beispiel `v1.4.4`), erkennt HACS `v1.1.2` möglicherweise nicht als neues Update. Bei einer solchen Installation die Version bewusst manuell aktualisieren oder die Release-Strategie anpassen.
+MIT – siehe [LICENSE](LICENSE).
