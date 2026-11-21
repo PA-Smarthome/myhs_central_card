@@ -13,26 +13,26 @@ with sync_playwright() as p:
  errs=[]
  page.on('pageerror', lambda e:errs.append(str(e)))
  page.set_content(html)
- page.wait_for_function('window.editor && editor.shadowRoot.querySelectorAll("details.tile-item").length===16')
+ page.wait_for_function('window.editor && editor.shadowRoot.querySelectorAll(".tile-item").length===16')
  page.evaluate("() => editor.addEventListener('config-changed',e=>card.setConfig(e.detail.config))")
  page.evaluate('''() => {
-   const panel=editor.shadowRoot.querySelector('details.tile-item');panel.open=true;
-   const icon=panel.querySelector('input[data-field=icon]');icon.value='mdi:shield-star';icon.dispatchEvent(new Event('change',{bubbles:true}));
+   const panel=editor.shadowRoot.querySelector('.tile-item');panel.querySelector('[data-action=expand-tile]').click();
+   const icon=editor.shadowRoot.querySelector('.tile-item input[data-field=icon]');icon.value='mdi:shield-star';icon.dispatchEvent(new Event('change',{bubbles:true}));
  }''')
  assert page.evaluate("() => editor._config.tiles[0].icon")=='mdi:shield-star'
  assert page.evaluate("() => card.shadowRoot.querySelector('button.tile ha-icon').getAttribute('icon')")=='mdi:shield-star'
  page.evaluate('''() => {
-   const panel=editor.shadowRoot.querySelectorAll('details.tile-item')[2];panel.open=true;
-   const sel=panel.querySelector('select[data-field=source]');sel.value='selected';sel.dispatchEvent(new Event('change',{bubbles:true}));
-   const input=editor.shadowRoot.querySelectorAll('details.tile-item')[2].querySelector('input[data-field=manual-entity]');
+   const panel=editor.shadowRoot.querySelectorAll('.tile-item')[2];panel.querySelector('[data-action=expand-tile]').click();
+   const sel=editor.shadowRoot.querySelectorAll('.tile-item')[2].querySelector('select[data-field=source]');sel.value='selected';sel.dispatchEvent(new Event('change',{bubbles:true}));
+   const input=editor.shadowRoot.querySelectorAll('.tile-item')[2].querySelector('input[data-field=manual-entity]');
    input.value='light.living';input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
  }''')
  assert page.evaluate("() => editor._config.tiles[2].entities") == ['light.living']
  # Group selection without native picker
  page.evaluate('''() => {
-   const panel=editor.shadowRoot.querySelectorAll('details.tile-item')[1];panel.open=true;
-   const sel=panel.querySelector('select[data-field=source]');sel.value='group';sel.dispatchEvent(new Event('change',{bubbles:true}));
-   const manual=editor.shadowRoot.querySelectorAll('details.tile-item')[1].querySelector('input[data-field=entity]');
+   const panel=editor.shadowRoot.querySelectorAll('.tile-item')[1];panel.querySelector('[data-action=expand-tile]').click();
+   const sel=editor.shadowRoot.querySelectorAll('.tile-item')[1].querySelector('select[data-field=source]');sel.value='group';sel.dispatchEvent(new Event('change',{bubbles:true}));
+   const manual=editor.shadowRoot.querySelectorAll('.tile-item')[1].querySelector('input[data-field=entity]');
    manual.value='group.windows';manual.dispatchEvent(new Event('change',{bubbles:true}));
  }''')
  assert page.evaluate("() => editor._config.tiles[1].entity") == 'group.windows'

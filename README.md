@@ -1,91 +1,77 @@
 # MYHS Central Card
 
-**MYHS Cards for Home Assistant**
+**MYHS Cards for Home Assistant**  
+**Version 1.0.7 · 16 Kacheltypen · Visueller Editor**
 
-Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYHS Central Card** bündelt wichtige Informationen zum Smart Home in **16 intelligenten Status-Kacheln** – übersichtlich gestaltet, mit dynamischen Farbverläufen und einem vollständig integrierten **visuellen Editor**.
+Eine moderne, frei konfigurierbare Übersichtskarte für Home Assistant. Die MYHS Central Card bündelt wichtige Statusinformationen deines Smart Homes in einem kompakten, übersichtlichen Raster – mit dynamischen Farbverläufen, Home-Assistant-Theme-Farben und einem visuellen Editor.
 
-**Version 1.1.6** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
+![MYHS Central Card – Vorschau](images/preview.png)
 
-![Vorschau der MYHS Central Card](images/preview.png)
-
-*Die Vorschau zeigt Beispieldaten. Angezeigte Werte und Farben richten sich nach deiner Home-Assistant-Konfiguration.*
+*Die Vorschau verwendet Beispieldaten.*
 
 ## Funktionen
 
-- **Alles auf einen Blick:** Statusinformationen zu Sicherheit, Fenstern, Licht, Klima, Medien, Anwesenheit und weiteren Bereichen.
-- **Einfach anpassbar:** Kacheln direkt im Home-Assistant-Menü suchen, hinzufügen, duplizieren, ausblenden, entfernen und neu anordnen.
-- **Flexible Datenquellen:** Automatische Erkennung, frei gewählte Entitäten oder Gruppen und Helfer.
-- **Passendes Design:** Home-Assistant-Theme-Farben, vollständige Home-Assistant-Symbolauswahl (`mdi:`) und Unterstützung für helle und dunkle Themes.
-- **Individuelles Layout:** Ein bis vier Spalten, einstellbare Abstände, Beschriftungen und Navigationsziele.
-- **Status und Navigation:** Die Kacheln zeigen Informationen an und können auf Dashboard-Ansichten verlinken. Geräte werden nicht direkt geschaltet.
+- **16 Status-Kacheltypen:** Sicherheit, Fenster, Licht, Energie, Heizung, Klima, Audio, Beschattung, Medien, Raumluft, Zutritt, Wecker, Präsenz, Anwesenheit, Fahrzeuge und Automationen.
+- **Visueller Editor:** Kacheln hinzufügen, duplizieren, entfernen, verschieben und mit einem Auge individuell ein- oder ausblenden.
+- **Übersichtliche Bearbeitung:** Jede Kachel hat eine eigene, deutlich sichtbare Schaltfläche **Bearbeiten**.
+- **Flexible Quellen:** Automatische Erkennung, ausgewählte Entitäten sowie Gruppen und Helfer.
+- **Symbole:** Native Icon-Auswahl von Home Assistant; `mdi:`-Icons sowie weitere in Home Assistant vorhandene Icon-Sammlungen, sofern unterstützt. Manuelle Eingabe möglich.
+- **Layout & Design:** Ein bis vier Spalten, anpassbare Abstände, Farben aus dem Home-Assistant-Theme, sanfte Farbverläufe und Navigationsziele.
+- **Änderungen rückgängig machen:** Rückgängig/Wiederholen während der geöffneten Bearbeitungssitzung.
+- **Universell:** Keine fest vorgegebenen persönlichen Entitäts-IDs.
+
+## Vorschau des Editors
+
+![Kompakte Kachelliste](images/editor-overview.png)
+
+Das **Auge** blendet nur die gewählte Kachel ein oder aus; **Bearbeiten** öffnet ihre Einstellungen. Ausgeblendete Kacheln bleiben in der Editor-Liste sichtbar.
+
+![Geöffnete Kacheleinstellungen](images/editor.png)
+
+Alle Einstellungen lassen sich über **Dashboard bearbeiten → Karte bearbeiten** vornehmen. YAML ist nicht erforderlich.
 
 ## Installation
 
+<!-- ha-marketplace:exclude-start -->
 ### Über HACS / Home Assistant Marketplace
 
-1. **HACS** beziehungsweise den **Marketplace** in Home Assistant öffnen.
-2. Falls die Karte nicht im Katalog verfügbar ist, das GitHub-Repository als **benutzerdefiniertes Dashboard-Repository** hinzufügen.
-3. **MYHS Central Card** installieren und die Dashboard-Oberfläche neu laden.
-4. Unter **Dashboard bearbeiten → Karte hinzufügen** die **MYHS Central Card** auswählen.
+1. Öffentliches GitHub-Repository erstellen und die Dateien aus dem Projektpaket in dessen Hauptverzeichnis hochladen.
+2. Das Repository als benutzerdefiniertes **Dashboard**-Repository in HACS/Marketplace hinzufügen.
+3. Die Karte installieren, die Home-Assistant-Oberfläche neu laden und unter **Karte hinzufügen** die **MYHS Central Card** auswählen.
 
-> Für die Installation über HACS wird das GitHub-Repository verwendet, nicht die heruntergeladene ZIP-Datei. Hinweise zur Veröffentlichung findest du unter [GitHub-Einrichtung](GITHUB-UPLOAD.md).
+Für die Veröffentlichung und das GitHub-Release siehe [GitHub-Anleitung](GITHUB-UPLOAD.md).
 
-### Manuelle Installation
+### Manuell
 
-1. Die Datei `dist/central-overview-card.js` nach `/config/www/central-overview-card.js` kopieren.
-2. Unter **Einstellungen → Dashboards → Ressourcen** die URL `/local/central-overview-card.js` als **JavaScript-Modul** hinzufügen.
-3. Home Assistant neu laden und die **MYHS Central Card** zum Dashboard hinzufügen.
+1. `dist/central-overview-card.js` nach `/config/www/central-overview-card.js` kopieren.
+2. Unter **Einstellungen → Dashboards → Ressourcen** das JavaScript-Modul `/local/central-overview-card.js` registrieren.
+3. Home Assistant neu laden und die Karte hinzufügen.
+<!-- ha-marketplace:exclude-end -->
 
-## Visueller Editor
+## Kacheltypen
 
-Die gesamte Konfiguration erfolgt direkt über den Karteneditor in Home Assistant. **YAML ist nicht erforderlich.** Globale Darstellungseinstellungen sind einklappbar; pro Kachel werden nur die gerade benötigten Felder gezeigt.
-
-![Übersichtlicher Editor mit Kachelverwaltung](images/editor-overview.png)
-
-*Alle Kacheln erscheinen zunächst als kompakte Liste. Ein Klick auf eine Kachel öffnet ihre Einstellungen.*
-
-![Detailansicht einer geöffneten Kachel](images/editor.png)
-
-Unter **Dashboard bearbeiten → Karte bearbeiten** lassen sich:
-
-- Kacheln schnell suchen, nach Sichtbarkeit filtern, hinzufügen, duplizieren, entfernen, ein- oder ausblenden und umsortieren;
-- Kacheltyp und Datenquelle auswählen;
-- einzelne Entitäten, Bereiche sowie Gruppen und Helfer zuordnen;
-- Namen, alle in Home Assistant verfügbaren Symbole, Statusfarben und Navigationsziele in getrennten Einstellungsabschnitten ändern;
-- Spaltenzahl (1–4), Kachelabstände und Untertitel anpassen.
-
-### Symbolauswahl
-
-Unter **Allgemein → Symbol** steht die native, durchsuchbare Symbolauswahl von Home Assistant zur Verfügung. Sie zeigt die vorhandenen **Material Design Icons (`mdi:`)** und – sofern in Home Assistant installiert und registriert – weitere Icon-Sammlungen. Es gibt **keine fest vorgegebene, gekürzte Liste** in der MYHS Central Card.
-
-Das gewählte Symbol wird direkt in der Kachel übernommen. Alternativ kann der vollständige Icon-Name eingegeben werden. Falls der native Picker in der installierten Home-Assistant-Frontend-Version nicht verfügbar ist, bleibt die manuelle Eingabe nutzbar.
-
-## Die 16 Kacheltypen
-
-| Kachel | Anzeige | Automatische Datenquelle |
+| Typ | Status | Erkennung/Quelle |
 | --- | --- | --- |
-| Sicherheit | Zustand der Alarmanlage | `alarm_control_panel` |
-| Fenster | Anzahl geöffneter Fenster | `binary_sensor` mit Fenster-/Öffnungsklasse |
-| Licht | Eingeschaltete Leuchten oder aktive Räume | `light` |
-| Energie | Aktive Steckdosen und Geräte | `switch` mit Steckdosen-Geräteklasse |
-| Heizung | Heizen und Automatikbetrieb | Heizungsbezogene `climate`-Entitäten |
-| Klima | Kühlen, Heizen und Lüften | Kühlfähige `climate`-Entitäten |
-| Audio | Wiedergabe und Pause | `media_player` für Lautsprecher/Receiver |
-| Beschattung | Offen, geschlossen oder teilweise geöffnet | `cover` |
+| Sicherheit | Alarmanlagenzustand | `alarm_control_panel` |
+| Fenster | Geöffnete Fenster | `binary_sensor` mit Fenster-/Öffnungsklasse |
+| Licht | Eingeschaltete Lichter | `light` |
+| Energie | Aktive Steckdosen/Geräte | `switch` mit passender Geräteklasse |
+| Heizung | Heizbetrieb | Heizungsbezogene `climate`-Entitäten |
+| Klima | Kühlen/Heizen/Lüften | Kühlfähige `climate`-Entitäten |
+| Audio | Wiedergabe/Pause | `media_player` für Lautsprecher/Receiver |
+| Beschattung | Offen, zu, teilweise | `cover` |
 | Medien | Aktive Fernseher | `media_player` für Fernseher |
-| Raumluft | Sensorwerte oder Grenzwert-Hinweise | Frei wählbare Sensoren |
-| Zutritt | Türschlossstatus | `lock` |
-| Wecker | Anzahl aktiver Wecker | Frei wählbare Entitäten |
-| Präsenz | Erkannte Bewegung oder Präsenz | Passende `binary_sensor`-Geräteklassen |
-| Anwesenheit | Anwesende Personen | `person` |
-| Fahrzeuge | Fahrzeuge in einem festgelegten Zustand | Frei wählbare Entitäten |
+| Raumluft | Grenzwert-/Zustandshinweise | Eigene Sensoren wählen |
+| Zutritt | Schlosszustand | `lock` |
+| Wecker | Aktive Wecker | Eigene Entitäten wählen |
+| Präsenz | Bewegung/Präsenz | Passende `binary_sensor`-Geräteklassen |
+| Anwesenheit | Personen zu Hause | `person` |
+| Fahrzeuge | Fahrzeugstatus | Eigene Entitäten wählen |
 | Automationen | Aktivierte Automationen | `automation` |
 
-**Zur Erkennung:** Die Karte orientiert sich an Home-Assistant-Domänen und Geräteklassen. Geräte ohne passende Zuordnung können im visuellen Editor manuell ausgewählt werden. Für die Kacheln Raumluft, Wecker und Fahrzeuge wird standardmäßig eine passende Datenquelle vom Nutzer festgelegt.
+Die automatische Erkennung verwendet Geräteklassen und Entitätsdomänen. Bei abweichenden Geräten können die gewünschten Entitäten im Editor direkt zugeordnet werden.
 
-## Konfiguration mit YAML (optional)
-
-Für fortgeschrittene Nutzer ist auch eine manuelle Konfiguration möglich:
+## YAML-Konfiguration (optional)
 
 ```yaml
 type: custom:central-overview-card
@@ -96,54 +82,31 @@ tiles:
     label: Fenster
     source: auto
     tone: error
-    navigation_path: '#fenster'
   - kind: lights
     label: Licht
     source: auto
     tone: warning
   - kind: people
-    label: Anwesenheit
+    label: Zuhause
     source: auto
     tone: pink
 ```
 
-Ohne eigene `tiles`-Liste werden alle 16 Kacheltypen als Ausgangspunkt angeboten. Für Datenquellen stehen `auto` (automatisch erkennen), `selected` (Entitäten auswählen) und `group` (Gruppe oder Helfer) zur Verfügung. Weitere Optionen betreffen unter anderem Bereichsfilter, Grenzwerte und Navigation.
+Der technische Kartentyp bleibt `custom:central-overview-card`, damit bestehende Dashboard-Konfigurationen kompatibel sind. Ohne eigene `tiles`-Liste stehen standardmäßig alle 16 Kacheltypen zur Verfügung.
 
-Der technische Kartentyp lautet weiterhin `custom:central-overview-card`, damit vorhandene Dashboard-Konfigurationen kompatibel bleiben.
+## Version und Aktualisierung
 
-## Design und Kompatibilität
+- **Version in der Karte:** Im visuellen Editor erscheint **Version 1.0.7**.
+- **Version in HACS/Marketplace:** Erst ein veröffentlichtes GitHub-Release mit dem Tag `v1.0.7` sorgt dort für eine Versionsanzeige anstelle eines Commit-Hashes. Ein Git-Tag allein genügt nicht.
+- **Bestehende höhere Releases:** Wer zuvor `v1.1.7` oder eine andere höhere Version veröffentlicht hat, bekommt `v1.0.7` normalerweise **nicht als automatisches Update** angeboten. Dafür ist eine passende Release-Strategie oder eine neue Repository-Linie nötig.
+- **Cache:** Bei manueller Installation kann `/local/central-overview-card.js?v=107` als Ressourcen-URL helfen, die neue Datei zu laden.
 
-- Farbverlauf im **135°-Winkel**, beginnend oben links und sanft auslaufend.
-- Verwendung von **Home-Assistant-Standardfarben** und Unterstützung für helle und dunkle Themes.
-- **Vollständige Home-Assistant-Symbolauswahl** mit Suche: alle integrierten `mdi:`-Icons sowie optional installierte und von Home Assistant registrierte Icon-Sammlungen. Zusätzliche Pakete sind nicht erforderlich.
-- Keine fest hinterlegten persönlichen Entitäts-IDs.
+## Hinweise
 
-**Hinweis zur Sicherheit:** Der Home-Assistant-Zustand `armed_home` bedeutet „zu Hause scharf“. Die optionale Einstellung `alarm_home_legacy` ist ausschließlich für die Kompatibilität mit früheren Darstellungen vorgesehen und standardmäßig deaktiviert.
+Die Kacheln dienen der **Anzeige und Navigation**; sie schalten keine Geräte direkt. Die optionale Kompatibilitätseinstellung `alarm_home_legacy` betrifft die alte Anzeige von `armed_home`; Home Assistant versteht diesen Zustand normalerweise als „zu Hause scharf“.
 
-## Aktualisierung und Fehlerbehebung
-
-**Änderungen werden nicht angezeigt?** In HACS / Marketplace bei der Karte zunächst **Update information** und danach **Redownload / Aktualisieren** wählen; anschließend die Home-Assistant-App vollständig neu starten. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=116` helfen, eine zwischengespeicherte Datei zu umgehen.
-
-**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein **veröffentlichtes reguläres Release** mit dem Tag `v1.1.6` anlegen (ein Tag allein genügt nicht). Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
-
-**Geräte fehlen in der Übersicht?** Geräteklasse und Entitätsdomäne prüfen oder die Entitäten im visuellen Editor gezielt auswählen.
-
-## Entwicklung und Tests
-
-```bash
-node --check dist/central-overview-card.js
-node tests/smoke.cjs
-# Optional: Browsertest mit Playwright und Chromium
-python tests/browser_smoke.py
-```
-
-JavaScript-Syntax, Statusberechnungen und Interaktionen des visuellen Editors wurden lokal geprüft. Die Vorschaubilder verwenden Beispieldaten. Ein vollständiger Praxistest in einer produktiven Home-Assistant-Installation und die öffentliche HACS-Veröffentlichung stehen noch aus.
+Die Entwicklung wurde mit lokalen Syntax-, Logik- und Browserprüfungen begleitet. Eine vollständige Prüfung in jeder Home-Assistant-Version oder Geräteintegration ist damit nicht ersetzt.
 
 ## Lizenz
 
-Veröffentlicht unter der [MIT-Lizenz](LICENSE).
-
-
-## Editor: Änderungen und Wiederherstellung
-
-Im visuellen Editor lassen sich Änderungen mit **Rückgängig** und **Wiederholen** zurücknehmen, solange die Bearbeitungsansicht geöffnet bleibt. **Alle anzeigen**, **Alle ausblenden** und **Zurücksetzen** pro Kachel erleichtern die Wiederherstellung. Nach dem Speichern und Schließen des Home-Assistant-Editors beginnt eine neue Bearbeitungssitzung; die vorherige Undo-Historie wird nicht gespeichert.
+[MIT](LICENSE)

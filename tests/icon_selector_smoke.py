@@ -20,8 +20,8 @@ with sync_playwright() as p:
  page.set_content(html)
  page.wait_for_function('window.editor && editor._config?.tiles?.length===16')
  page.evaluate('''() => {
-    const row=editor.shadowRoot.querySelector('details.tile-item');row.open=true;
-    const sel=row.querySelector('ha-selector[data-field=icon]');
+    const row=editor.shadowRoot.querySelector('.tile-item');row.querySelector('[data-action=expand-tile]').click();
+    const sel=editor.shadowRoot.querySelector('ha-selector[data-field=icon]');
     if(!sel || !sel.selector || !sel.selector.icon)throw Error('native HA icon selector missing');
     sel.dispatchEvent(new CustomEvent('value-changed',{detail:{value:'mdi:home-circle'},bubbles:true,composed:true}));
  }''')

@@ -7,8 +7,8 @@ assert(!src.includes('--custom_'), 'Must not depend on custom theme variables');
 assert(!src.includes('edelmann'), 'Must not include original installation-specific entities');
 assert(!src.includes("icon:'local:"), 'Default icons must not depend on local icon packs');
 assert(src.includes('ha-icon-picker'), 'Must provide native Home Assistant icon picker');
-assert(src.includes('Version 1.1.6'), 'Editor must display Version 1.1.6');
-assert(src.includes('data-card-version=\"1.1.6\"'), 'Card version must match');
+assert(src.includes('Version 1.0.7'), 'Editor must display Version 1.0.7');
+assert(src.includes('data-card-version=\"1.0.7\"'), 'Card version must match');
 
 const testSrc = src.replace(/\}\)\(\);\s*$/, 'window.__test = { compute, createConfig, resolveEntities, KINDS };})();');
 const registry = new Map();

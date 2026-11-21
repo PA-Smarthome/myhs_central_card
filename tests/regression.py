@@ -1,92 +1,62 @@
-"""Real DOM interactions against simulated Home Assistant card editor behavior.
-Uses real Chromium, but cannot replace tests in a live Home Assistant frontend.
-"""
+"""Full editor lifecycle: repeated edits, hide/show, undo/redo, search, source selection."""
 from pathlib import Path
 from playwright.sync_api import sync_playwright
-
 root=Path(__file__).resolve().parents[1]
-html=(root/'tests/browser.html').read_text(encoding='utf-8').replace(
- '<script src="../dist/central-overview-card.js"></script>',
- '<script>'+ (root/'dist/central-overview-card.js').read_text(encoding='utf-8') + '</script>')
-
+html=(root/'tests/browser.html').read_text().replace('<script src="../dist/central-overview-card.js"></script>',
+    '<script>'+(root/'dist/central-overview-card.js').read_text()+'</script>')
 with sync_playwright() as p:
- browser=p.chromium.launch(headless=True, executable_path='/usr/bin/chromium', args=['--no-sandbox'])
- page=browser.new_page(viewport={'width':390,'height':844},device_scale_factor=2, is_mobile=True,has_touch=True)
- pageerrors=[]
- page.on('pageerror',lambda e:pageerrors.append(str(e)))
+ b=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+ page=b.new_page(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
+ errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  page.set_content(html)
- page.wait_for_function("window.card && window.editor && editor.shadowRoot.querySelectorAll('details.tile-item').length === 16")
- # HA behavior: config-changed sends config to card, then editor.setConfig with same config
- page.evaluate('''() => editor.addEventListener('config-changed', e=>{card.setConfig(e.detail.config); editor.setConfig(e.detail.config);})''')
- def get(js):return page.evaluate(js)
- assert get("() => card.shadowRoot.querySelectorAll('button.tile').length") == 16
- # quick visibility, including collapse & persistent configuration
- assert not get("() => editor.shadowRoot.querySelector('details.tile-item').open")
- page.locator('central-overview-card-editor').evaluate("el=>el.shadowRoot.querySelector('details.tile-item button[data-action=toggle-enabled]').click()")
- assert get("() => editor._config.tiles[0].enabled") is False
- assert not get("() => editor.shadowRoot.querySelector('details.tile-item').open"), 'quick toggle unexpectedly expanded editor'
- assert get("() => card.shadowRoot.querySelectorAll('button.tile').length") == 15
- assert get("() => editor.shadowRoot.querySelector('.count-badge').textContent") == '15 / 16 sichtbar'
- page.locator('central-overview-card-editor').evaluate("el=>el.shadowRoot.querySelector('details.tile-item button[data-action=toggle-enabled]').click()")
- assert get("() => editor._config.tiles[0].enabled") is True
- assert get("() => card.shadowRoot.querySelectorAll('button.tile').length") == 16
- # bulk updates + card preview, with no remount
- page.locator('central-overview-card-editor').evaluate("el=>el.shadowRoot.querySelector('#hide-all').click()")
- assert get("() => card.shadowRoot.querySelectorAll('button.tile').length") == 0
- assert get("() => editor.shadowRoot.querySelector('.count-badge').textContent") == '0 / 16 sichtbar'
- page.locator('central-overview-card-editor').evaluate("el=>el.shadowRoot.querySelector('#show-all').click()")
- assert get("() => card.shadowRoot.querySelectorAll('button.tile').length") == 16
- # Change manually typed mdi: icon and preserve across render and HASS update
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const t=el.shadowRoot.querySelector('details.tile-item');t.open=true;
-  const input=t.querySelector('input[data-field=icon]');input.value='mdi:shield-custom';
-  input.dispatchEvent(new Event('input',{bubbles:true}));
- }''')
- assert get("() => editor._config.tiles[0].icon") == 'mdi:shield-home', 'partial icon was committed on input'
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const input=el.shadowRoot.querySelector('details.tile-item input[data-field=icon]');
-  input.dispatchEvent(new Event('change',{bubbles:true}));
- }''')
- assert get("() => editor._config.tiles[0].icon") == 'mdi:shield-custom'
- assert get("() => card.shadowRoot.querySelector('button.tile ha-icon').getAttribute('icon')") == 'mdi:shield-custom'
- # Preserve custom icon even though lock normally has state-dependent icon.
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const t=el.shadowRoot.querySelectorAll('details.tile-item')[10];t.open=true;
-  const input=t.querySelector('input[data-field=icon]');input.value='mdi:door';
-  input.dispatchEvent(new Event('change',{bubbles:true}));
- }''')
- page.evaluate("() => {hassMock.states['lock.door'].state='unlocked';card.hass=hassMock;}")
- assert get("() => card.shadowRoot.querySelectorAll('button.tile')[10].querySelector('ha-icon').getAttribute('icon')") == 'mdi:door'
- # Group kind dynamic icon must not overwrite custom shading icon either
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const t=el.shadowRoot.querySelectorAll('details.tile-item')[7];t.open=true;
-  const inp=t.querySelector('input[data-field=icon]');inp.value='mdi:window-shutter';
-  inp.dispatchEvent(new Event('change',{bubbles:true}));
- }''')
- assert get("() => card.shadowRoot.querySelectorAll('button.tile')[7].querySelector('ha-icon').getAttribute('icon')") == 'mdi:window-shutter'
- # Select source and add entity by manual field even if picker unavailable
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const t=el.shadowRoot.querySelectorAll('details.tile-item')[2];t.open=true;
-  const s=t.querySelector('select[data-field=source]');s.value='selected';s.dispatchEvent(new Event('change',{bubbles:true}));
- }''')
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const t=el.shadowRoot.querySelectorAll('details.tile-item')[2];
-  const inp=t.querySelector('input[data-field=manual-entity]');inp.value='light.living';
-  t.querySelector('button[data-action=add-entity]').click();
- }''')
- assert get("() => editor._config.tiles[2].entities") == ['light.living']
- assert get("() => card.shadowRoot.querySelectorAll('button.tile')[2].querySelector('.state').textContent") == 'In 1 Raum aktiv'
- # Need check input focus persist after editor emit
- assert get("() => editor.shadowRoot.querySelectorAll('details.tile-item')[2].open")
- # Filtering hidden tiles and finding them again
- page.locator('central-overview-card-editor').evaluate("el=>el.shadowRoot.querySelector('details.tile-item button[data-action=toggle-enabled]').click()")
- page.locator('central-overview-card-editor').evaluate('''el=>{
-  const s=el.shadowRoot.querySelector('#tile-filter');s.value='hidden';s.dispatchEvent(new Event('change',{bubbles:true}));
- }''')
- assert get("() => Array.from(editor.shadowRoot.querySelectorAll('details.tile-item')).filter(x=>!x.hidden).length") == 1
- page.locator('central-overview-card-editor').evaluate('''el=>el.shadowRoot.querySelector('details.tile-item button[data-action=toggle-enabled]').click()''')
- assert get("() => editor.shadowRoot.querySelector('#tile-filter').value") == 'all'
- assert get("() => Array.from(editor.shadowRoot.querySelectorAll('details.tile-item')).filter(x=>!x.hidden).length") == 16
- assert not pageerrors, pageerrors
- browser.close()
-print('PASS: live save/reload, quick hide/show, bulk hide/show, manual icon, dynamic state icons, manual entities, filtering, and iPhone layout interactions')
+ page.wait_for_function("editor && editor.shadowRoot.querySelectorAll('.tile-item').length===16")
+ page.evaluate("()=>editor.addEventListener('config-changed',e=>{card.setConfig(e.detail.config);editor.setConfig(e.detail.config)})")
+ get=lambda expr:page.evaluate(expr)
+ fire=lambda expr:page.evaluate(expr)
+ expand=lambda idx:fire(f"()=>editor.shadowRoot.querySelectorAll('.tile-item')[{idx}].querySelector('[data-action=expand-tile]').click()")
+ eye=lambda idx:fire(f"()=>editor.shadowRoot.querySelectorAll('.tile-item')[{idx}].querySelector('[data-action=toggle-enabled]').click()")
+ assert get("()=>card.shadowRoot.querySelectorAll('button.tile').length")==16
+ # independent eye and open: never toggle accordion accidentally
+ eye(0);assert get('()=>editor._config.tiles[0].enabled') is False
+ assert get('()=>editor._openTile') is None
+ eye(0);assert get('()=>editor._config.tiles[0].enabled') is True
+ expand(0);assert get('()=>editor._openTile')==0
+ eye(0);assert get('()=>editor._openTile')==0
+ eye(0)
+ assert get('()=>editor._config.tiles[0].enabled') is True
+ # icon/source and navigation survive repeated rerenders
+ fire('''()=>{const x=editor.shadowRoot.querySelector('.tile-item input[data-field=icon]');
+ x.value='mdi:star';x.dispatchEvent(new Event('change',{bubbles:true}));}''')
+ fire('''()=>{const x=editor.shadowRoot.querySelector('.tile-item input[data-field=label]');
+ x.value='Testbereich';x.dispatchEvent(new Event('change',{bubbles:true}));}''')
+ assert get('()=>editor._config.tiles[0].icon')=='mdi:star'
+ assert get('()=>editor._config.tiles[0].label')=='Testbereich'
+ assert get('()=>editor._openTile')==0
+ fire('()=>editor.shadowRoot.querySelector("#undo").click()')
+ assert get('()=>editor._config.tiles[0].label')!='Testbereich'
+ fire('()=>editor.shadowRoot.querySelector("#redo").click()')
+ assert get('()=>editor._config.tiles[0].label')=='Testbereich'
+ expand(1)
+ fire('''()=>{const x=editor.shadowRoot.querySelectorAll('.tile-item')[1].querySelector('select[data-field=source]');
+ x.value='selected';x.dispatchEvent(new Event('change',{bubbles:true}));}''')
+ assert get('()=>editor._openTile')==1
+ assert get('()=>editor._config.tiles[1].source')=='selected'
+ fire('''()=>{const x=editor.shadowRoot.querySelectorAll('.tile-item')[1].querySelector('input[data-field=manual-entity]');
+ x.value='binary_sensor.window';editor.shadowRoot.querySelectorAll('.tile-item')[1].querySelector('[data-action=add-entity]').click();}''')
+ assert get('()=>editor._config.tiles[1].entities')==['binary_sensor.window']
+ # search is local and clearing it restores all tiles
+ previous=get('()=>window.changes.length')
+ fire('''()=>{const x=editor.shadowRoot.querySelector('#tile-search');x.value='fenster';x.dispatchEvent(new Event('input',{bubbles:true}));}''')
+ assert get("()=>[...editor.shadowRoot.querySelectorAll('.tile-item')].filter(x=>!x.hidden).length")==1
+ assert get('()=>window.changes.length')==previous
+ fire('''()=>{const x=editor.shadowRoot.querySelector('#tile-search');x.value='';x.dispatchEvent(new Event('input',{bubbles:true}));}''')
+ assert get("()=>[...editor.shadowRoot.querySelectorAll('.tile-item')].filter(x=>!x.hidden).length")==16
+ # after save and recreate, eye can always restore
+ saved=get('()=>structuredClone(editor._config)')
+ page.evaluate('''(saved)=>{editor.remove();const fresh=document.createElement('central-overview-card-editor');
+ document.getElementById('visual-editor').appendChild(fresh);window.editor=fresh;fresh.setConfig(saved);fresh.hass=hassMock;}''',saved)
+ eye(0);eye(0)
+ assert get('()=>editor._config.tiles[0].enabled') is True
+ assert not errors,errors
+ b.close()
+print('PASS: iPhone editor, open/close, eye independent, undo/redo, icon, source, manual entity, search, reload')

@@ -1,4 +1,4 @@
-/* MYHS Central Card | Version 1.1.6 | MIT | Home Assistant Lovelace | no dependencies */
+/* MYHS Central Card | Version 1.0.7 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -333,7 +333,7 @@
     _update() {
       if (!this._config) return;
       if (!this._rendered) {
-        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.6"><div class="grid"></div></ha-card>`;
+        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.0.7"><div class="grid"></div></ha-card>`;
         this.shadowRoot.querySelector('.grid').addEventListener('click',(ev)=>{
           const btn=ev.target.closest('button.tile');
           if (!btn) return;
@@ -377,7 +377,7 @@
     }
   }
 
-  /* Visual editor v2: a compact overview with progressive disclosure. */
+  /* Visual editor: distinct edit and visibility controls with a simple layout. */
   const EDIT_CSS = `
     :host {display:block;color:var(--primary-text-color);font-family:var(--primary-font-family,inherit);}
     * {box-sizing:border-box;}
@@ -393,11 +393,12 @@
     .version {font-size:11px;font-weight:600;white-space:nowrap;border-radius:20px;padding:5px 8px;
       color:var(--secondary-text-color);background:var(--secondary-background-color,var(--card-background-color,#fff));}
     details {min-width:0;}
-    details.settings, details.tile-item {border:1px solid var(--divider-color,#ddd);
+    details.settings,.tile-item {border:1px solid var(--divider-color,#ddd);
       border-radius:12px;background:var(--ha-card-background,var(--card-background-color,#fff));overflow:hidden;}
-    details.settings>summary, details.tile-item>summary {list-style:none;cursor:pointer;outline-offset:3px;}
-    details.settings>summary::-webkit-details-marker, details.tile-item>summary::-webkit-details-marker {display:none;}
+    details.settings>summary {list-style:none;cursor:pointer;outline-offset:3px;}
+    details.settings>summary::-webkit-details-marker {display:none;}
     details.settings>summary {display:flex;align-items:center;gap:11px;padding:13px 14px;}
+    details.settings>summary:hover {background:var(--secondary-background-color,transparent);}
     .settings-icon {color:var(--secondary-text-color);display:flex;}
     .settings-icon ha-icon {--mdc-icon-size:21px;}
     .settings-summary {flex:1;min-width:0;display:grid;gap:3px;}
@@ -435,35 +436,41 @@
     .tiles-title p {margin:3px 0 0;color:var(--secondary-text-color);font-size:12px;}
     .count-badge {background:var(--secondary-background-color,var(--card-background-color,#fff));
       color:var(--secondary-text-color);font-size:12px;padding:6px 10px;border-radius:18px;white-space:nowrap;}
-    .filter-row {display:grid;grid-template-columns:minmax(0,1fr) 126px;gap:8px;}
-    .filter-row input, .filter-row select {min-height:38px;}
-    .tile-list {display:grid;gap:7px;}
-    details.tile-item>summary {display:flex;align-items:center;gap:10px;padding:9px 11px;min-height:59px;}
-    details.tile-item>summary:hover,details.settings>summary:hover {background:var(--secondary-background-color,transparent);}
-    details.tile-item {position:relative;}
-    details.tile-item>summary {padding-right:65px;}
-    .tile-item.is-off {opacity:.68;}
+    .editor-tools {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .editor-tools input {flex:1 1 170px;min-height:39px;}
+    .history-actions {display:flex;gap:6px;flex:none;}
+    .history-actions button {min-width:0;min-height:39px;padding:7px 9px;font-size:12px;}
+    .tile-list {display:grid;gap:8px;}
+    .tile-item {min-width:0;}
+    .tile-item.expanded {border-color:var(--primary-color,#03a9f4);}
     .tile-item[hidden] {display:none !important;}
+    .tile-head {display:flex;align-items:stretch;gap:5px;padding:6px;}
+    /* The edit button and visibility button are independent click targets.
+       No native <details> toggle or overlaid button is involved. */
+    button.tile-expand {appearance:none;border:0;background:transparent;min-width:0;flex:1;
+      min-height:49px;display:flex;align-items:center;gap:9px;padding:5px 7px;
+      text-align:left;border-radius:9px;color:var(--primary-text-color);}
+    button.tile-expand:hover,button.tile-expand:focus-visible {background:var(--secondary-background-color,rgba(0,0,0,.04));}
+    .tile-expand .expand-action {display:flex;align-items:center;gap:3px;flex:none;
+      padding:6px 7px;border:1px solid var(--divider-color,#ddd);border-radius:8px;
+      color:var(--primary-color,#03a9f4);font-size:12px;font-weight:700;line-height:1;}
+    .tile-expand .expand-arrow {font-size:19px;line-height:14px;font-weight:700;}
+    .tile-item.expanded .expand-action {background:var(--secondary-background-color,rgba(0,0,0,.04));}
+    .tile-item.is-off .tile-symbol,.tile-item.is-off .tile-text {opacity:.58;}
+    button.quick-visibility {appearance:none;position:static;min-width:43px;width:43px;
+      min-height:49px;height:auto;display:flex;align-items:center;justify-content:center;
+      flex:none;border:1px solid var(--divider-color,#ddd);border-radius:9px;
+      background:var(--secondary-background-color,var(--card-background-color,#fff));
+      color:var(--primary-color,#03a9f4);cursor:pointer;padding:6px;}
+    button.quick-visibility ha-icon {--mdc-icon-size:22px;}
+    button.quick-visibility.is-off {color:var(--secondary-text-color);background:transparent;}
+    button.quick-visibility:focus-visible {outline:2px solid var(--primary-color);outline-offset:1px;}
     .tile-symbol {display:flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;border-radius:10px;
       color:var(--tile-accent,var(--secondary-text-color));background:var(--secondary-background-color,rgba(0,0,0,.04));}
     .tile-symbol ha-icon {--mdc-icon-size:20px;}
     .tile-text {min-width:0;display:grid;gap:3px;flex:1;}
     .tile-text strong {font-size:13px;line-height:1.35;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .tile-text small {font-size:11px;line-height:1.3;color:var(--secondary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .status {border-radius:20px;padding:4px 7px;background:var(--secondary-background-color,rgba(0,0,0,.04));
-      color:var(--secondary-text-color);font-size:10px;line-height:1.3;white-space:nowrap;}
-    .status.enabled {color:var(--success-color,var(--green-color,#3c9b60));}
-    .quick-visibility {position:absolute;top:9px;right:41px;z-index:3;
-      display:inline-flex;align-items:center;justify-content:center;
-      flex:none;min-width:40px;min-height:40px;border-radius:9px;padding:6px;
-      border:1px solid var(--divider-color,#ddd);
-      background:var(--secondary-background-color,var(--card-background-color,#fff));
-      color:var(--primary-text-color);cursor:pointer;}
-    .quick-visibility ha-icon {--mdc-icon-size:19px;}
-    .quick-visibility.is-off {color:var(--secondary-text-color);}
-    .bulk-actions {display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
-    .bulk-actions button {flex:1;min-width:110px;}
-    .history-actions button {min-width:90px;}
     .icon-help {font-size:11px;color:var(--secondary-text-color);margin:0;line-height:1.5;}
     .input-with-preview {display:flex;gap:9px;align-items:center;}
     .input-with-preview input {flex:1;min-width:0;}
@@ -471,6 +478,7 @@
     ha-entity-picker:not(:defined) {display:none;}
     .manual-entity {margin-top:7px;}
     .edit-body {display:grid;gap:16px;padding:15px;border-top:1px solid var(--divider-color,#ddd);}
+    .edit-body[hidden] {display:none !important;}
     .edit-section + .edit-section {border-top:1px solid var(--divider-color,#ddd);padding-top:15px;}
     .hint {font-size:11px;line-height:1.5;margin:6px 0 0;color:var(--secondary-text-color);}
     .entity-list {display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
@@ -495,9 +503,11 @@
     .advanced {padding-top:8px;}
     .advanced summary {cursor:pointer;color:var(--secondary-text-color);font-size:12px;}
     .advanced .check {margin-top:10px;}
-    @media (max-width:440px) {.filter-row {grid-template-columns:minmax(0,1fr) 112px;}
-      .version {padding:4px 6px;} .edit-actions button {flex:1;} }
-    @media (max-width:345px) {.fields {grid-template-columns:1fr;} .add-controls {grid-template-columns:1fr;}}
+    @media (max-width:440px) {.version {padding:4px 6px;} .edit-actions button {flex:1;}
+      .tile-expand .expand-action {padding:7px 4px;}
+      .editor-tools input {flex-basis:100%;} }
+    @media (max-width:345px) {.fields {grid-template-columns:1fr;} .tile-expand .expand-action span {display:none;}
+      .add-controls {grid-template-columns:1fr;}}
     @media (prefers-reduced-motion:reduce) {.chevron {transition:none;}}
   `;
   const sourceLabels={auto:'Automatische Erkennung',selected:'Entitäten auswählen',group:'Gruppe / Helfer'};
@@ -515,7 +525,6 @@
       this._settingsOpen=false;
       this._advancedOpen=false;
       this._searchQuery='';
-      this._visibilityFilter='all';
       this._undoStack=[];
       this._redoStack=[];
       this._syncingPickers=false;
@@ -555,7 +564,7 @@
       if(this._undoStack.length>60) this._undoStack.shift();
       this._redoStack=[];
       this._config=next;
-      if(resetFilter){this._visibilityFilter='all';this._searchQuery='';}
+      if(resetFilter){this._searchQuery='';}
       if(openIndex!==undefined) this._openTile=openIndex;
       this._publish();
     }
@@ -572,7 +581,6 @@
       if(!from.length)return;
       to.push(cloneConfig(this._config));
       this._config=from.pop();
-      this._visibilityFilter='all';
       this._searchQuery='';
       if(this._openTile!==null && this._openTile>=this._config.tiles.length)this._openTile=null;
       this._publish();
@@ -601,13 +609,11 @@
     _applyFilter(){
       if(!this._config)return;
       const q=this._searchQuery.trim().toLocaleLowerCase('de');let found=0;
-      this.shadowRoot.querySelectorAll('details.tile-item').forEach(el=>{
+      this.shadowRoot.querySelectorAll('.tile-item').forEach(el=>{
         const t=this._config.tiles[Number(el.dataset.i)];if(!t)return;
         const meta=KINDS[t.kind]||{};
         const matchText=`${t.label||''} ${meta.label||''} ${t.kind} ${sourceLabels[t.source||meta.source]||''}`;
-        const visible=t.enabled!==false;
-        const match=matchText.toLocaleLowerCase('de').includes(q) &&
-          (this._visibilityFilter==='all'||(this._visibilityFilter==='visible'?visible:!visible));
+        const match=matchText.toLocaleLowerCase('de').includes(q);
         el.hidden=!match;if(match)found++;
       });
       const empty=this.shadowRoot.querySelector('#empty-filter');if(empty)empty.hidden=found>0;
@@ -617,21 +623,21 @@
     _click(e){
       const btn=e.target.closest?.('button');if(!btn || !this._config)return;
       const action=btn.dataset.action;
-      const row=btn.closest('details.tile-item');
+      const row=btn.closest('.tile-item');
       const index=row?Number(row.dataset.i):-1;
-      // The eye button is outside the <summary>. Safari/iOS can't trigger
-      // the native details toggle when changing visibility.
+      // The eye and expand button are independent; neither nests in a summary.
       if(action==='toggle-enabled' && index>=0){
         e.preventDefault();e.stopPropagation();
-        this._commit(cfg=>{cfg.tiles[index].enabled=cfg.tiles[index].enabled===false;},
-          {resetFilter:true});return;
+        this._commit(cfg=>{cfg.tiles[index].enabled=cfg.tiles[index].enabled===false;});return;
+      }
+      if(action==='expand-tile' && index>=0){
+        e.preventDefault();
+        this._openTile=this._openTile===index?null:index;
+        this._render();
+        return;
       }
       if(btn.id==='undo'){this._history('undo');return;}
       if(btn.id==='redo'){this._history('redo');return;}
-      if(btn.id==='show-all'||btn.id==='hide-all'){
-        const enabled=btn.id==='show-all';
-        this._commit(cfg=>{cfg.tiles=cfg.tiles.map(t=>({...t,enabled}));},{resetFilter:true});return;
-      }
       if(btn.id==='add-tile'){
         const kind=this.shadowRoot.querySelector('#new-kind')?.value;
         if(!KINDS[kind])return;
@@ -676,9 +682,6 @@
     _change(e){
       const el=e.target;
       if(!this._config||['ha-icon-picker','ha-entity-picker','ha-selector'].includes(el.localName))return;
-      if(el.id==='tile-filter'){
-        this._visibilityFilter=el.value;this._applyFilter();return;
-      }
       const global=el.dataset?.global;
       if(global){
         let value=el.type==='checkbox'?el.checked:el.value;
@@ -688,7 +691,7 @@
       }
       const field=el.dataset?.field;
       if(!field||['manual-entity','new-entity'].includes(field))return;
-      const row=el.closest('details.tile-item');if(!row)return;
+      const row=el.closest('.tile-item');if(!row)return;
       const i=Number(row.dataset.i);
       const value=el.type==='checkbox'?el.checked:el.value;
       this._tileUpdate(i,field,value);
@@ -698,7 +701,7 @@
       if(this._syncingPickers||!this._config||
           !['ha-icon-picker','ha-entity-picker','ha-selector'].includes(el.localName))return;
       e.stopPropagation();
-      const row=el.closest('details.tile-item');if(!row)return;
+      const row=el.closest('.tile-item');if(!row)return;
       const value=e.detail?.value||'';
       if(el.dataset.field==='new-entity'){
         el.dataset.pending=value;return;
@@ -716,21 +719,13 @@
       if(e.key!=='Enter')return;
       if(e.target.matches?.('input[data-field="manual-entity"]')){
         e.preventDefault();
-        e.target.closest('details.tile-item')?.querySelector('button[data-action="add-entity"]')?.click();
+        e.target.closest('.tile-item')?.querySelector('button[data-action="add-entity"]')?.click();
       }
     }
     _toggled(e){
       if(!this._config)return;
       const d=e.target;if(!d.matches?.('details'))return;
-      if(d.classList.contains('tile-item')){
-        const i=Number(d.dataset.i);
-        if(d.open){
-          this._openTile=i;
-          this.shadowRoot.querySelectorAll('details.tile-item[open]').forEach(other=>{
-            if(other!==d)other.open=false;
-          });
-        }else if(this._openTile===i)this._openTile=null;
-      }else if(d.classList.contains('settings'))this._settingsOpen=d.open;
+      if(d.classList.contains('settings'))this._settingsOpen=d.open;
       else if(d.classList.contains('advanced'))this._advancedOpen=d.open;
     }
     _render() {
@@ -766,20 +761,25 @@
           <input class="manual-entity" data-field="manual-entity" aria-label="Entitäts-ID manuell eingeben"
             placeholder="Alternativ Entitäts-ID eingeben (z. B. light.wohnzimmer)" spellcheck="false">
           <p class="hint">Entität aus dem Menü wählen oder eine Entitäts-ID eingeben und auf „Hinzufügen“ tippen.</p></div>`:'';
-        return `<details class="tile-item ${enabled?'':'is-off'}" data-i="${i}" ${this._openTile===i?'open':''}>
-          <summary aria-label="Kachel ${i+1}: ${esc(displayName)} bearbeiten">
-            <div class="tile-symbol" style="--tile-accent:${color}"><ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon></div>
-            <div class="tile-text"><strong>${esc(displayName)}</strong><small>${esc(sourceDetail)}</small></div>
-            <span class="status ${enabled?'enabled':''}">${enabled?'Sichtbar':'Ausgeblendet'}</span>
-            <span class="chevron" aria-hidden="true">›</span>
-          </summary>
-          <button type="button" class="quick-visibility ${enabled?'':'is-off'}"
-              data-action="toggle-enabled" aria-label="${enabled?'Ausblenden':'Einblenden'}: ${esc(displayName)}"
-              title="${enabled?'Ausblenden':'Einblenden'}">
+        return `<div class="tile-item ${enabled?'':'is-off'} ${this._openTile===i?'expanded':''}" data-i="${i}">
+          <div class="tile-head">
+            <button type="button" class="tile-expand" data-action="expand-tile"
+              aria-label="${esc(displayName)} bearbeiten" aria-expanded="${this._openTile===i?'true':'false'}"
+              aria-controls="tile-details-${i}">
+              <span class="tile-symbol" style="--tile-accent:${color}"><ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon></span>
+              <span class="tile-text"><strong>${esc(displayName)}</strong>
+                <small>${enabled?esc(sourceDetail):'Ausgeblendet'}</small></span>
+              <span class="expand-action"><span>${this._openTile===i?'Schließen':'Bearbeiten'}</span>
+                <span class="expand-arrow" aria-hidden="true">${this._openTile===i?'▴':'▾'}</span></span>
+            </button>
+            <button type="button" class="quick-visibility ${enabled?'':'is-off'}"
+              data-action="toggle-enabled" aria-pressed="${enabled?'true':'false'}"
+              aria-label="${enabled?'Ausblenden':'Einblenden'}: ${esc(displayName)}"
+              title="${enabled?'Kachel ausblenden':'Kachel einblenden'}">
               <ha-icon icon="${enabled?'mdi:eye':'mdi:eye-off'}"></ha-icon>
             </button>
-          <div class="edit-body" data-i="${i}">
-            <label class="check"><input type="checkbox" data-field="enabled" ${enabled?'checked':''}>Kachel anzeigen</label>
+          </div>
+          <div class="edit-body" id="tile-details-${i}" data-i="${i}" ${this._openTile===i?'':'hidden'}>
             <section class="edit-section">
               <div class="section-heading"><strong>Allgemein</strong><small>Bezeichnung und Aussehen</small></div>
               <div class="fields">
@@ -830,14 +830,14 @@
               <button type="button" class="remove" data-action="delete">Entfernen</button>
             </div>
           </div>
-        </details>`;
+        </div>`;
       };
       const visible=cfg.tiles.filter(t=>t.enabled!==false).length;
       this.shadowRoot.innerHTML=`<style>${EDIT_CSS}</style><div class="editor">
         <header class="intro">
           <div class="brand-icon"><ha-icon icon="mdi:view-dashboard-outline"></ha-icon></div>
           <div class="intro-copy"><h3>MYHS Central Card</h3><p>Deine zentrale Smart-Home-Übersicht</p></div>
-          <span class="version">Version 1.1.6</span>
+          <span class="version">Version 1.0.7</span>
         </header>
         <details class="settings" ${this._settingsOpen?'open':''}>
           <summary><span class="settings-icon"><ha-icon icon="mdi:tune-variant"></ha-icon></span>
@@ -854,22 +854,21 @@
             </details>
           </div>
         </details>
-        <div class="tiles-title"><div><h3>Kacheln</h3><p>Antippen, um die Einstellungen zu öffnen</p></div>
+        <div class="tiles-title"><div><h3>Kacheln</h3><p>Bearbeiten oder über das Auge ein- und ausblenden.</p></div>
           <span class="count-badge">${visible} / ${cfg.tiles.length} sichtbar</span></div>
-        <div class="bulk-actions history-actions">
-          <button type="button" id="undo" ${this._undoStack.length?'':'disabled'}>↶ Rückgängig</button>
-          <button type="button" id="redo" ${this._redoStack.length?'':'disabled'}>↷ Wiederholen</button>
+        <div class="editor-tools"><input type="search" id="tile-search" aria-label="Kacheln suchen" placeholder="Kachel suchen …">
+          <div class="history-actions">
+            <button type="button" id="undo" ${this._undoStack.length?'':'disabled'} title="Letzte Änderung zurücknehmen">↶ Rückgängig</button>
+            <button type="button" id="redo" ${this._redoStack.length?'':'disabled'} title="Änderung wiederholen">↷ Wiederholen</button>
+          </div>
         </div>
-        <div class="bulk-actions"><button type="button" id="show-all">Alle anzeigen</button><button type="button" id="hide-all">Alle ausblenden</button></div>
-        <div class="filter-row"><input type="search" id="tile-search" aria-label="Kacheln suchen" placeholder="Kacheln suchen …">
-          <select id="tile-filter" aria-label="Kacheln filtern">${option('all','Alle',this._visibilityFilter)}${option('visible','Sichtbar',this._visibilityFilter)}${option('hidden','Ausgeblendet',this._visibilityFilter)}</select></div>
         <div class="tile-list">${cfg.tiles.map(editorTile).join('')}
           <div id="empty-filter" class="no-results" hidden>Keine passenden Kacheln gefunden.</div></div>
         <div class="add-panel"><strong>Neue Kachel hinzufügen</strong>
           <div class="add-controls"><select id="new-kind" aria-label="Neuen Kacheltyp wählen">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
             <button type="button" class="primary" id="add-tile">+ Hinzufügen</button></div></div>
         <p class="footer-note" id="filter-count"></p>
-        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.6</p>
+        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.0.7</p>
       </div>`;
       const search=this.shadowRoot.querySelector('#tile-search');
       if(search)search.value=this._searchQuery;
