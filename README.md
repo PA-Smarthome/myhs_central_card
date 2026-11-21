@@ -1,4 +1,4 @@
-# MYHS-Central-Card
+# MYHS Central Card
 
 **MYHS Cards for Home Assistant**  
 **Version 1.0.3** · 16 Status-Kacheln · Visueller Editor
