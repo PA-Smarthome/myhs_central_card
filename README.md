@@ -4,7 +4,7 @@
 
 Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYHS Central Card** bündelt wichtige Informationen zum Smart Home in **16 intelligenten Status-Kacheln** – übersichtlich gestaltet, mit dynamischen Farbverläufen und einem vollständig integrierten **visuellen Editor**.
 
-**Version 1.1.2** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
+**Version 1.1.3** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
 
 ![Vorschau der MYHS Central Card](images/preview.png)
 
@@ -116,9 +116,9 @@ Der technische Kartentyp lautet weiterhin `custom:central-overview-card`, damit 
 
 ## Aktualisierung und Fehlerbehebung
 
-**Änderungen werden nicht angezeigt?** Die Karte in HACS aktualisieren und Home Assistant vollständig neu laden. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=112` helfen, eine zwischengespeicherte Datei zu umgehen.
+**Änderungen werden nicht angezeigt?** In HACS / Marketplace bei der Karte zunächst **Update information** und danach **Redownload / Aktualisieren** wählen; anschließend die Home-Assistant-App vollständig neu starten. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=112` helfen, eine zwischengespeicherte Datei zu umgehen.
 
-**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein reguläres Release mit dem Tag `v1.1.2` veröffentlichen. Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
+**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein **veröffentlichtes reguläres Release** mit dem Tag `v1.1.3` anlegen (ein Tag allein genügt nicht). Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
 
 **Geräte fehlen in der Übersicht?** Geräteklasse und Entitätsdomäne prüfen oder die Entitäten im visuellen Editor gezielt auswählen.
 

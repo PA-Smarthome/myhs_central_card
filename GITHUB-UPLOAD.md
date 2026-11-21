@@ -7,23 +7,23 @@
 3. Im neuen GitHub-Repository **Add file → Upload files** wählen.
 4. **Alle Dateien und Unterordner aus dem entpackten Verzeichnis** hochladen, nicht das ZIP und nicht nur die `.js`-Datei. Bei GitHub muss `hacs.json` direkt im Hauptverzeichnis liegen und `dist/central-overview-card.js` vorhanden sein.
 5. Auf **Commit changes** klicken.
-6. Unter **Releases → Draft a new release** optional ein Release mit Tag `v1.1.2` erstellen. Ein Release ist für Updates und eine spätere öffentliche Veröffentlichung sinnvoll.
+6. **Wichtig für Updates:** Unter **Releases → Draft a new release** ein neues **reguläres GitHub-Release** mit dem Tag `v1.1.3` vom aktualisierten Standard-Branch veröffentlichen. **Publish release** auswählen. Kein Pre-release und keinen nur lokal angelegten Tag verwenden.
 7. In Home Assistant HACS / Marketplace öffnen, benutzerdefiniertes Repository hinzufügen: die URL `https://github.com/DEIN-NAME/lovelace-central-overview-card` angeben und Kategorie **Dashboard** wählen.
 8. Nach Installation das Dashboard neu laden. Unter **Dashboard bearbeiten → Karte hinzufügen** `MYHS Central Card` wählen. Dann alles im **visuellen Editor** einstellen.
 
 ## Zu beachten
 
 - Die `.github/workflows/validate.yml` ist eine **versteckte Datei** (Ordnername beginnt mit Punkt). Prüfe nach dem Upload, ob die Datei mit hochgeladen wurde. Falls nicht, in GitHub **Add file → Create new file** wählen und als Pfad `.github/workflows/validate.yml` eingeben. Den Dateiinhalt kannst du aus dem entpackten Projekt kopieren.
-- Nicht alte Versionen mit der v1.1.2 mischen. Ersetze bei einem bereits bestehenden Repository vor einem Release die alte `dist/central-overview-card.js`.
+- Nicht alte Versionen mit der v1.1.3 mischen. Ersetze bei einem bereits bestehenden Repository vor einem Release die alte `dist/central-overview-card.js`.
 - Für die Icons werden die **integrierten `mdi:`-Symbole von Home Assistant** genutzt. Unter **Karte bearbeiten** ist dafür der native Icon-Picker integriert.
 - Es werden keine persönlichen Entitäten fest vorgegeben.
 - Lokale Syntax-/Browser-Tests wurden ausgeführt; ein Test auf einem echten Home-Assistant-System ist noch nicht erfolgt.
 
 ## Editor-Update prüfen auf iPhone
 
-Bitte nicht nur das Release erstellen: in HACS / Marketplace die Karte tatsächlich **aktualisieren**, anschließend die Home-Assistant-App vollständig beenden und neu starten. Unter **Karte bearbeiten** erscheint die Versionsanzeige **Version 1.1.2** im Kopfbereich. Die neue Ansicht bietet zusätzlich Suche und die Aktion **Duplizieren**. Falls nicht, ist noch alter Code geladen. Bei manueller Ressource die URL auf `/local/central-overview-card.js?v=112` ändern und anschließend komplett neu laden.
+Nach dem neuen GitHub-Release in HACS / Marketplace **Update information** und anschließend **Redownload / Aktualisieren** wählen, anschließend die Home-Assistant-App vollständig beenden und neu starten. Unter **Karte bearbeiten** erscheint die Versionsanzeige **Version 1.1.3** im Kopfbereich. Die neue Ansicht bietet zusätzlich Suche und die Aktion **Duplizieren**. Falls nicht, ist noch alter Code geladen. Bei manueller Ressource die URL auf `/local/central-overview-card.js?v=112` ändern und anschließend komplett neu laden.
 
-**Hinweis zu bestehenden GitHub-Releases:** Wenn das Repository bereits ein höheres Release (z. B. `v1.4.4`) enthält, betrachtet HACS ein neues `v1.1.2` ggf. nicht als Update. Die Anzeige im Karteneditor ist unabhängig vom GitHub-Tag.
+**Hinweis zu bestehenden GitHub-Releases:** Wenn das Repository bereits ein höheres Release (z. B. `v1.4.4`) enthält, betrachtet HACS ein neues `v1.1.3` ggf. nicht als Update. Die Anzeige im Karteneditor ist unabhängig vom GitHub-Tag.
 
 ## GitHub-Repository-Beschreibung
 
@@ -31,6 +31,6 @@ In GitHub rechts bei **About → Zahnrad → Description** exakt folgenden Text 
 
 `MYHS Cards for Home Assistant`
 
-Die Datei `README.md` ändert diese kurze GitHub-/HACS-Beschreibung nicht automatisch. Damit HACS `v1.1.2` statt einer Commit-Kennung wie `db97120` zeigt, muss außerdem auf GitHub ein **reguläres Release** mit Tag `v1.1.2` veröffentlicht werden.
+Die Datei `README.md` ändert diese kurze GitHub-/HACS-Beschreibung nicht automatisch. Damit HACS `v1.1.3` statt einer Commit-Kennung wie `db97120` zeigt, muss außerdem auf GitHub ein **reguläres Release** mit Tag `v1.1.3` veröffentlicht werden.
 
-**Wichtig bei erneutem Upload derselben Versionsnummer:** Die Anzeige im Editor bleibt auf Wunsch bei Version 1.1.2. Ein bestehendes GitHub-Release mit demselben Tag aktualisiert HACS nicht zwingend automatisch. Für automatische Updates muss ein neuer GitHub-Release-Tag mit höherer Versionsnummer veröffentlicht werden.
+**Wichtig:** Falls auf GitHub bereits ein Release `v1.1.3` oder höher existiert, einen **neuen, höheren Release-Tag** verwenden und auch die im JavaScript angezeigte Versionsnummer entsprechend anpassen. Ein erneuter Commit unter derselben Version erzeugt kein zuverlässiges neues Update.

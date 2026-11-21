@@ -1,4 +1,4 @@
-/* MYHS Central Card | Version 1.1.2 | MIT | Home Assistant Lovelace | no dependencies */
+/* MYHS Central Card | Version 1.1.3 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -319,7 +319,7 @@
     _update() {
       if (!this._config) return;
       if (!this._rendered) {
-        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.2"><div class="grid"></div></ha-card>`;
+        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.3"><div class="grid"></div></ha-card>`;
         this.shadowRoot.querySelector('.grid').addEventListener('click',(ev)=>{
           const btn=ev.target.closest('button.tile');
           if (!btn) return;
@@ -608,7 +608,7 @@
         <header class="intro">
           <div class="brand-icon"><ha-icon icon="mdi:view-dashboard-outline"></ha-icon></div>
           <div class="intro-copy"><h3>MYHS Central Card</h3><p>Deine zentrale Smart-Home-Übersicht</p></div>
-          <span class="version">Version 1.1.2</span>
+          <span class="version">Version 1.1.3</span>
         </header>
         <details class="settings" ${this._settingsOpen?'open':''}>
           <summary><span class="settings-icon"><ha-icon icon="mdi:tune-variant"></ha-icon></span>
@@ -635,7 +635,7 @@
           <div class="add-controls"><select id="new-kind" aria-label="Neuen Kacheltyp wählen">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
             <button type="button" class="primary" id="add-tile">+ Hinzufügen</button></div></div>
         <p class="footer-note" id="filter-count"></p>
-        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.2</p>
+        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.3</p>
       </div>`;
       this.shadowRoot.querySelector('#tile-search').value=this._searchQuery;
       this.shadowRoot.querySelector('#tile-search').addEventListener('input',e=>{this._searchQuery=e.target.value;this._applyFilter();});
