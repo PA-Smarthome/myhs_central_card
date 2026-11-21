@@ -1,4 +1,4 @@
-/* Central Overview Card v1.1.0 | MIT | Home Assistant Lovelace | no dependencies */
+/* Central Overview Card v1.3.0 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -50,6 +50,10 @@
     alarm_home_legacy:false, tiles:Object.keys(KINDS).map(createTile)});
   const strings = (value) => Array.isArray(value) ? value.filter(v => typeof v === 'string') : [];
   const uniq = (items) => [...new Set(items.filter(Boolean))];
+  // Built-in Home Assistant Material Design icons only: never require local icon packs.
+  const mdiIcon = (candidate, kind) =>
+    (typeof candidate === 'string' && /^mdi:[a-z0-9][a-z0-9-]*$/i.test(candidate))
+      ? candidate : (KINDS[kind]?.icon || 'mdi:help-circle');
   const hasState = (entity) => Boolean(entity && !['unknown','unavailable'].includes(entity.state));
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (x) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const countMessage = (n, singular, plural) => n === 1 ? singular : plural(n);
@@ -229,28 +233,51 @@
   }
 
   const CARD_CSS = `
-    :host { display:block; }
-    ha-card { background:none; border:none; box-shadow:none; padding:0; overflow:visible; }
-    .grid {display:grid; grid-template-columns:repeat(var(--co-columns, 2),minmax(0,1fr)); gap:var(--co-gap,8px);}
-    button.tile {font:inherit; font-family:var(--primary-font-family,inherit); text-align:left; padding:10px;
-      border:var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color,transparent)); border-radius:var(--ha-card-border-radius,12px);
-      min-width:0; width:100%; min-height:111px; color:var(--primary-text-color);
+    :host {display:block;}
+    ha-card {background:none; border:0; box-shadow:none; padding:0; overflow:visible;}
+    .grid {display:grid; grid-template-columns:repeat(var(--co-columns, 2),minmax(0,1fr));
+      gap:var(--co-gap,8px);}
+    button.tile {box-sizing:border-box; appearance:none; font:inherit;
+      font-family:var(--primary-font-family,inherit); text-align:left;
+      display:grid; grid-template-rows:25px minmax(21px,auto) 16px;
+      align-content:center; justify-items:start; row-gap:1px;
+      padding:9px 11px; min-width:0; width:100%; min-height:86px;
+      border:1px solid var(--ha-card-border-color,var(--divider-color,transparent));
+      border-radius:var(--ha-card-border-radius,12px);
+      color:var(--primary-text-color);
       background:var(--ha-card-background,var(--card-background-color,#fff));
-      display:grid; align-content:start; justify-items:start; grid-template-rows:30px minmax(27px,auto) auto;
-      cursor:default; box-shadow:var(--ha-card-box-shadow,none); transition:background .15s ease; }
-    button.tile.clickable {cursor:pointer;} button.tile.clickable:hover {filter:brightness(1.035);}
-    button.tile:focus-visible {outline:2px solid var(--primary-color);outline-offset:2px;}
-    button.tile.colored {background:linear-gradient(135deg,
-      color-mix(in srgb,var(--tile-color) 32%, transparent) 0%,
-      color-mix(in srgb,var(--tile-color) 32%, transparent) 14%,
-      transparent 68%),var(--ha-card-background,var(--card-background-color,#fff));}
-    .icon {height:30px;width:30px;display:flex;align-items:center;justify-content:start;color:var(--tile-fg,var(--secondary-text-color));}
-    ha-icon { --mdc-icon-size:25px; width:25px;height:25px; }
-    .state {color:var(--tile-fg,var(--secondary-text-color));font-size:16px;line-height:27px;font-weight:700;
-      width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .label {color:var(--primary-text-color);font-size:13px;line-height:18px;opacity:.8;
-      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
-    .empty {padding:20px;color:var(--secondary-text-color);font-size:14px;}
+      box-shadow:var(--ha-card-box-shadow,0 1px 2px rgb(0 0 0 / 3%));
+      cursor:default;
+      transition:box-shadow .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+    button.tile.clickable {cursor:pointer;}
+    button.tile.clickable:hover {transform:translateY(-1px);
+      box-shadow:0 3px 10px rgb(0 0 0 / 7%);
+      border-color:color-mix(in srgb,var(--tile-color) 25%,var(--divider-color,#ddd));}
+    button.tile.clickable:active {transform:translateY(0);}
+    button.tile:focus-visible {outline:2px solid var(--primary-color); outline-offset:2px;}
+    button.tile.colored {background:
+      linear-gradient(125deg,
+        color-mix(in srgb,var(--tile-color) 12%,transparent) 0%,
+        color-mix(in srgb,var(--tile-color) 6%,transparent) 27%,
+        transparent 72%),
+      var(--ha-card-background,var(--card-background-color,#fff));}
+    .icon {box-sizing:border-box; height:24px; width:29px; display:flex;
+      align-items:center; justify-content:flex-start;
+      color:var(--tile-fg,var(--secondary-text-color));}
+    ha-icon {--mdc-icon-size:21px; width:21px; height:21px;}
+    .state {color:var(--tile-fg,var(--secondary-text-color));
+      font-size:14.5px; line-height:21px; font-weight:650; letter-spacing:-.15px;
+      width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .label {color:var(--secondary-text-color); font-size:11.5px; line-height:16px;
+      font-weight:450; letter-spacing:.05px; width:100%; min-width:0;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    button.tile:not(:has(.label)) {grid-template-rows:25px minmax(21px,auto); min-height:70px;}
+    .empty {padding:16px;color:var(--secondary-text-color);font-size:13px;}
+    @media (prefers-reduced-motion:reduce) {
+      button.tile {transition:none;}
+      button.tile.clickable:hover {transform:none;}
+    }
   `;
   class CentralOverviewCard extends HTMLElement {
     constructor() {super();this.attachShadow({mode:'open'});this._config=null;this._hass=null;this._rendered=false;}
@@ -259,7 +286,7 @@
     getCardSize() {
       const n=(this._config?.tiles || []).filter(t=>t.enabled!==false && KINDS[t.kind]).length;
       const cols=Math.max(1,Math.min(4,Number(this._config?.columns)||2));
-      return Math.max(1,Math.ceil((Math.ceil(n/cols)*119 + 8)/50));
+      return Math.max(1,Math.ceil((Math.ceil(n/cols)*94 + 8)/50));
     }
     getGridOptions() {return {columns:12,rows:'auto'};}
     setConfig(config) {
@@ -267,7 +294,7 @@
         if (config && !config.tiles) config={...createConfig(),...config};
         else throw new Error('central-overview-card: tiles muss eine Liste sein.');
       }
-      this._config={...createConfig(),...config,tiles:config.tiles.map(t=>({...t}))};
+      this._config={...createConfig(),...config,tiles:config.tiles.map(t=>({...t,icon:mdiIcon(t.icon,t.kind)}))};
       this._update();
     }
     set hass(hass) {this._hass=hass;this._update();}
@@ -301,7 +328,7 @@
         const color=COLOR_VARS[selectedTone] || COLOR_VARS.info;
         const colored=status.colorize || status.active;
         const textTone=colored ? color : 'var(--secondary-text-color)';
-        const icon=status.icon || t.icon || KINDS[t.kind].icon;
+        const icon=mdiIcon(status.icon || t.icon,t.kind);
         const label=t.label === undefined ? KINDS[t.kind].label : t.label;
         const navigable=typeof t.navigation_path==='string' &&
           (t.navigation_path.startsWith('#') || (t.navigation_path.startsWith('/') && !t.navigation_path.startsWith('//')));
@@ -328,7 +355,11 @@
       background:var(--card-background-color,var(--ha-card-background,#fff));color:var(--primary-text-color);font:inherit;font-size:14px;padding:6px 8px;width:100%;}
     input[type=checkbox] {width:17px;min-height:17px;accent-color:var(--primary-color,#03a9f4);}
     label.check {flex-direction:row;align-items:center;color:var(--primary-text-color);}
-    ha-entity-picker {width:100%;min-height:40px;display:block;}
+    ha-entity-picker, ha-icon-picker {width:100%;min-height:40px;display:block;}
+    ha-icon-picker:not(:defined) {display:none;}
+    .icon-fallback {display:none;}
+    ha-icon-picker:not(:defined) + .icon-fallback {display:flex;}
+    .fields > .wide {grid-column:1 / -1;}
     details {border:1px solid var(--divider-color,#ddd);border-radius:11px;overflow:hidden;}
     summary {padding:10px;cursor:pointer;font-size:14px;font-weight:600;}
     .tile-editor {border:0;border-top:1px solid var(--divider-color,#ddd);border-radius:0;display:grid;gap:12px;}
@@ -351,7 +382,7 @@
     setConfig(config) {
       const raw=JSON.stringify(config);
       if (raw === this._lastEmitted) return; // keep keyboard focus while editing
-      this._config={...createConfig(),...config, tiles:(config.tiles||[]).map(t=>({...t,entities:strings(t.entities)}))};
+      this._config={...createConfig(),...config, tiles:(config.tiles||[]).map(t=>({...t,icon:mdiIcon(t.icon,t.kind),entities:strings(t.entities)}))};
       this._render();
     }
     set hass(hass) {
@@ -368,6 +399,9 @@
     }
     _setTile(i,field,value,structural=false) {
       const previous=this._config.tiles[i];
+      // The native picker also lists installed custom icon collections; constrain
+      // the card to the built-in mdi: icons requested for universal distribution.
+      if (field==='icon') value=mdiIcon(value,previous.kind);
       let tile={...previous, [field]:value};
       if (field==='kind' && KINDS[value]) {
         const oldDefaults=KINDS[previous.kind] || {};
@@ -402,7 +436,8 @@
               <label>Typ<select data-field="kind">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,tile.kind)).join('')}</select></label>
               <label>Datenquelle<select data-field="source">${Object.entries(sourceLabels).map(([v,d])=>option(v,d,mode)).join('')}</select></label>
               <label>Untertitel<input data-field="label" value="${esc(tile.label??k.label)}" placeholder="${esc(k.label)}"></label>
-              <label>Icon (mdi: oder local:)<input data-field="icon" value="${esc(tile.icon??k.icon)}"></label>
+              <div class="wide"><ha-icon-picker data-field="icon" label="Symbol aus Home Assistant" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon-picker>
+                <label class="icon-fallback">Symbol (mdi:)<input data-field="icon" value="${esc(mdiIcon(tile.icon,tile.kind))}" placeholder="mdi:home"></label></div>
               <label>Aktiv-Farbe (HA-Standard)<select data-field="tone">${['alarm','lock'].includes(tile.kind)?option('auto','Abhängig vom Zustand',tile.tone||'auto'):''}${Object.entries(COLOR_LABELS).map(([v,d])=>option(v,d,tile.tone||k.tone)).join('')}</select></label>
               <label class="wide">Navigation (# oder /dashboard/...)<input data-field="navigation_path" value="${esc(tile.navigation_path||'')}" placeholder="#details"></label>
               ${mode==='auto'?`<label>Bereich<select data-field="area">${option('','Alle Bereiche',tile.area||'')}${areas.map(a=>option(a.area_id||a.id,a.name,tile.area||'')).join('')}</select></label>
@@ -434,6 +469,14 @@
           <button type="button" class="primary" id="add-tile">+ Kachel</button></div>
         <p class="help">Für Fahrzeuge, Wecker und Raumluft ist eine Datenquelle notwendig. Audio und Fernseher werden automatisch nur erkannt, wenn die Geräteklasse zugeordnet ist.</p>
       </div>`;
+      this.shadowRoot.querySelectorAll('ha-icon-picker').forEach(el=>{
+        el.value=el.getAttribute('value') || '';
+        el.addEventListener('value-changed',e=>{
+          e.stopPropagation();
+          const i=Number(el.closest('[data-i]').dataset.i);
+          this._setTile(i,'icon',e.detail?.value || '');
+        });
+      });
       this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(el=>{
         if (this._hass) el.hass=this._hass;
         // Property is the preferred value binding for frontend custom elements.
@@ -453,7 +496,7 @@
           this._emit();return;
         }
         const field=el.dataset?.field;
-        if (!field || field==='new-entity' || el.localName==='ha-entity-picker') return;
+        if (!field || field==='new-entity' || ['ha-entity-picker','ha-icon-picker'].includes(el.localName)) return;
         const i=Number(el.closest('[data-i]').dataset.i);
         const val=el.type==='checkbox' ? el.checked : el.value;
         this._setTile(i,field,val,['kind','source','enabled'].includes(field));
