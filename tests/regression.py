@@ -85,7 +85,8 @@ with sync_playwright() as p:
  }''')
  assert get("() => Array.from(editor.shadowRoot.querySelectorAll('details.tile-item')).filter(x=>!x.hidden).length") == 1
  page.locator('central-overview-card-editor').evaluate('''el=>el.shadowRoot.querySelector('details.tile-item button[data-action=toggle-enabled]').click()''')
- assert get("() => Array.from(editor.shadowRoot.querySelectorAll('details.tile-item')).filter(x=>!x.hidden).length") == 0
+ assert get("() => editor.shadowRoot.querySelector('#tile-filter').value") == 'all'
+ assert get("() => Array.from(editor.shadowRoot.querySelectorAll('details.tile-item')).filter(x=>!x.hidden).length") == 16
  assert not pageerrors, pageerrors
  browser.close()
 print('PASS: live save/reload, quick hide/show, bulk hide/show, manual icon, dynamic state icons, manual entities, filtering, and iPhone layout interactions')

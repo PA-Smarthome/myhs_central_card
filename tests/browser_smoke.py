@@ -19,7 +19,7 @@ with sync_playwright() as p:
     page.wait_for_function('window.card && window.editor && editor.shadowRoot.querySelectorAll("details.tile-item").length === 16')
     assert page.evaluate('card.shadowRoot.querySelectorAll("button.tile").length') == 16
     assert page.evaluate('editor.shadowRoot.querySelectorAll("ha-icon-picker").length') == 16
-    assert page.evaluate('editor.shadowRoot.textContent.includes("Version 1.1.4")')
+    assert page.evaluate('editor.shadowRoot.textContent.includes("Version 1.1.5")')
 
     (root / 'images').mkdir(exist_ok=True)
     page.locator('#dashboard').screenshot(path=str(root / 'images/preview.png'))
@@ -43,10 +43,12 @@ with sync_playwright() as p:
       const d=el.shadowRoot.querySelector('details.tile-item');
       d.querySelector('ha-icon-picker').dispatchEvent(new CustomEvent('value-changed',{
         detail:{value:'mdi:shield-check'}}));
-      const picker=d.querySelector('ha-entity-picker[data-field="new-entity"]');
+      // Icon selection refreshes the editor; use the current tile element.
+      const fresh=el.shadowRoot.querySelector('details.tile-item');
+      const picker=fresh.querySelector('ha-entity-picker[data-field="new-entity"]');
       picker.value='binary_sensor.new_window';
       picker.dispatchEvent(new CustomEvent('value-changed',{detail:{value:'binary_sensor.new_window'}}));
-      d.querySelector('button[data-action="add-entity"]').click();
+      fresh.querySelector('button[data-action="add-entity"]').click();
     }''')
     assert page.evaluate('window.changes.at(-1).tiles[0].icon') == 'mdi:shield-check'
     assert 'binary_sensor.new_window' in page.evaluate('window.changes.at(-1).tiles[0].entities')

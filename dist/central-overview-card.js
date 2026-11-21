@@ -1,4 +1,4 @@
-/* MYHS Central Card | Version 1.1.4 | MIT | Home Assistant Lovelace | no dependencies */
+/* MYHS Central Card | Version 1.1.5 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -330,7 +330,7 @@
     _update() {
       if (!this._config) return;
       if (!this._rendered) {
-        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.4"><div class="grid"></div></ha-card>`;
+        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.5"><div class="grid"></div></ha-card>`;
         this.shadowRoot.querySelector('.grid').addEventListener('click',(ev)=>{
           const btn=ev.target.closest('button.tile');
           if (!btn) return;
@@ -432,6 +432,8 @@
     .tile-list {display:grid;gap:7px;}
     details.tile-item>summary {display:flex;align-items:center;gap:10px;padding:9px 11px;min-height:59px;}
     details.tile-item>summary:hover,details.settings>summary:hover {background:var(--secondary-background-color,transparent);}
+    details.tile-item {position:relative;}
+    details.tile-item>summary {padding-right:65px;}
     .tile-item.is-off {opacity:.68;}
     .tile-item[hidden] {display:none !important;}
     .tile-symbol {display:flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;border-radius:10px;
@@ -443,7 +445,8 @@
     .status {border-radius:20px;padding:4px 7px;background:var(--secondary-background-color,rgba(0,0,0,.04));
       color:var(--secondary-text-color);font-size:10px;line-height:1.3;white-space:nowrap;}
     .status.enabled {color:var(--success-color,var(--green-color,#3c9b60));}
-    .quick-visibility {display:inline-flex;align-items:center;justify-content:center;
+    .quick-visibility {position:absolute;top:9px;right:41px;z-index:3;
+      display:inline-flex;align-items:center;justify-content:center;
       flex:none;min-width:40px;min-height:40px;border-radius:9px;padding:6px;
       border:1px solid var(--divider-color,#ddd);
       background:var(--secondary-background-color,var(--card-background-color,#fff));
@@ -452,6 +455,7 @@
     .quick-visibility.is-off {color:var(--secondary-text-color);}
     .bulk-actions {display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
     .bulk-actions button {flex:1;min-width:110px;}
+    .history-actions button {min-width:90px;}
     .icon-help {font-size:11px;color:var(--secondary-text-color);margin:0;line-height:1.5;}
     .input-with-preview {display:flex;gap:9px;align-items:center;}
     .input-with-preview input {flex:1;min-width:0;}
@@ -489,97 +493,237 @@
     @media (prefers-reduced-motion:reduce) {.chevron {transition:none;}}
   `;
   const sourceLabels={auto:'Automatische Erkennung',selected:'Entitäten auswählen',group:'Gruppe / Helfer'};
+  // The visual editor uses one event dispatcher for its lifetime. Each update
+  // creates a fresh, independent config object: Home Assistant never receives
+  // an object which we will mutate later. This also makes Undo/Redo reliable.
+  const cloneConfig = (cfg) => JSON.parse(JSON.stringify(cfg));
   class CentralOverviewEditor extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({mode:'open'});
-      this._config=null;this._hass=null;this._lastEmitted='';
-      this._openTile=null;this._settingsOpen=false;this._advancedOpen=false;
-      this._searchQuery='';this._visibilityFilter='all';
+      this._config=null;
+      this._hass=null;
+      this._openTile=null;
+      this._settingsOpen=false;
+      this._advancedOpen=false;
+      this._searchQuery='';
+      this._visibilityFilter='all';
+      this._undoStack=[];
+      this._redoStack=[];
+      this._syncingPickers=false;
+      this.shadowRoot.addEventListener('click',e=>this._click(e));
+      this.shadowRoot.addEventListener('change',e=>this._change(e));
+      this.shadowRoot.addEventListener('value-changed',e=>this._pickerChanged(e));
+      this.shadowRoot.addEventListener('input',e=>this._input(e));
+      this.shadowRoot.addEventListener('keydown',e=>this._keyDown(e));
+      this.shadowRoot.addEventListener('toggle',e=>this._toggled(e),true);
     }
-    setConfig(config) {
-      const raw=JSON.stringify(config);
-      if (raw===this._lastEmitted) return;
-      this._config={...createConfig(),...config,
-        tiles:(config.tiles||[]).map(t=>({...t,icon:mdiIcon(t.icon,t.kind),entities:strings(t.entities)}))};
+    setConfig(incoming) {
+      if (!incoming || typeof incoming !== 'object') return;
+      const next={...createConfig(),...cloneConfig(incoming),tiles:Array.isArray(incoming.tiles)
+        ? incoming.tiles.map(t=>({...cloneConfig(t), entities:strings(t.entities)}))
+        : createConfig().tiles};
+      // Ignore HA's echo of the config we just dispatched. External changes
+      // (including a HA dashboard undo) are accepted even if we've edited before.
+      if(this._config && JSON.stringify(next)===JSON.stringify(this._config)) return;
+      if(this._config){this._undoStack=[];this._redoStack=[];}
+      this._config=next;
       this._render();
     }
-    set hass(hass) {
-      const first=!this._hass;this._hass=hass;
-      if (first && this._config) this._render();
+    set hass(hass){
+      const first=!this._hass;
+      this._hass=hass;
+      if(first && this._config) this._render();
       else this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(el=>{el.hass=hass;});
     }
     get hass(){return this._hass;}
-    _emit(structural=false) {
-      this._config={...this._config,tiles:[...this._config.tiles]};
-      this._lastEmitted=JSON.stringify(this._config);
-      this.dispatchEvent(new CustomEvent('config-changed',
-        {detail:{config:this._config},bubbles:true,composed:true}));
-      if(structural) this._render();
+    _commit(mutator,{resetFilter=false,openIndex=undefined}={}){
+      if(!this._config) return;
+      const previous=cloneConfig(this._config);
+      const next=cloneConfig(this._config);
+      mutator(next);
+      if(JSON.stringify(next)===JSON.stringify(previous)) return;
+      this._undoStack.push(previous);
+      if(this._undoStack.length>60) this._undoStack.shift();
+      this._redoStack=[];
+      this._config=next;
+      if(resetFilter){this._visibilityFilter='all';this._searchQuery='';}
+      if(openIndex!==undefined) this._openTile=openIndex;
+      this._publish();
     }
-    _setTile(i,field,value,structural=false) {
-      const previous=this._config.tiles[i];
-      if (!previous) return;
-      if(field==='icon') value=mdiIcon(String(value||'').trim(),previous.kind);
-      const tile={...previous,[field]:value};
-      if(field==='kind' && KINDS[value]) {
-        const oldDefaults=KINDS[previous.kind]||{}, defaults=KINDS[value];
-        if(!previous.label || previous.label===oldDefaults.label) tile.label=defaults.label;
-        if(!previous.icon || previous.icon===oldDefaults.icon) tile.icon=defaults.icon;
-        if(!previous.tone || previous.tone===oldDefaults.tone || previous.tone==='auto')
-          tile.tone=['alarm','lock'].includes(value)?'auto':defaults.tone;
-        if(previous.source===oldDefaults.source) tile.source=defaults.source;
-        tile.entities=[];delete tile.entity;
+    _publish(){
+      // Render first; HA's immediate config echo then sees an equal value.
+      this._render();
+      this.dispatchEvent(new CustomEvent('config-changed',{
+        bubbles:true,composed:true,detail:{config:cloneConfig(this._config)}
+      }));
+    }
+    _history(direction){
+      const from=direction==='undo'?this._undoStack:this._redoStack;
+      const to=direction==='undo'?this._redoStack:this._undoStack;
+      if(!from.length)return;
+      to.push(cloneConfig(this._config));
+      this._config=from.pop();
+      this._visibilityFilter='all';
+      this._searchQuery='';
+      if(this._openTile!==null && this._openTile>=this._config.tiles.length)this._openTile=null;
+      this._publish();
+    }
+    _tileUpdate(i,field,value){
+      const old=this._config?.tiles?.[i];if(!old)return;
+      if(field==='icon'){
+        value=String(value??'').trim().toLowerCase();
+        if(!/^mdi:[a-z0-9][a-z0-9-]*$/.test(value))return;
       }
-      this._config.tiles[i]=tile;
-      this._emit(structural);
-      if(!structural && field==='icon') {
-        const row=this.shadowRoot.querySelector(`details.tile-item[data-i="${i}"]`);
-        row?.querySelector('.tile-symbol ha-icon')?.setAttribute('icon',value);
-        row?.querySelector('.icon-preview')?.setAttribute('icon',value);
-        const input=row?.querySelector('input[data-field="icon"]');
-        if(input) input.value=value;
-        const picker=row?.querySelector('ha-icon-picker[data-field="icon"]');
-        if(picker) picker.value=value;
-      }
-      if(!structural && field==='enabled') this._refreshVisibility();
+      const structural=['kind','source'].includes(field);
+      this._commit(cfg=>{
+        const t=cfg.tiles[i];
+        t[field]=value;
+        if(field==='kind' && KINDS[value]){
+          const oldDefaults=KINDS[old.kind]||{}, defaults=KINDS[value];
+          if(!old.label||old.label===oldDefaults.label)t.label=defaults.label;
+          if(!old.icon||old.icon===oldDefaults.icon)t.icon=defaults.icon;
+          if(!old.tone||old.tone===oldDefaults.tone||old.tone==='auto')
+            t.tone=['alarm','lock'].includes(value)?'auto':defaults.tone;
+          if(old.source===oldDefaults.source)t.source=defaults.source;
+          t.entities=[];delete t.entity;
+        }
+      },{openIndex:structural?i:undefined});
     }
-    _refreshVisibility() {
-      const shown=this._config.tiles.filter(t=>t.enabled!==false).length;
-      const badge=this.shadowRoot.querySelector('.count-badge');
-      if(badge) badge.textContent=`${shown} / ${this._config.tiles.length} sichtbar`;
-      this.shadowRoot.querySelectorAll('details.tile-item').forEach(row=>{
-        const tile=this._config.tiles[Number(row.dataset.i)];
-        const enabled=tile?.enabled!==false;
-        row.classList.toggle('is-off',!enabled);
-        const status=row.querySelector('.status');
-        if(status){status.textContent=enabled?'Sichtbar':'Ausgeblendet';status.classList.toggle('enabled',enabled);}
-        const quick=row.querySelector('button[data-action="toggle-enabled"]');
-        if(quick){quick.title=enabled?'Ausblenden':'Einblenden';
-          quick.setAttribute('aria-label',`${enabled?'Ausblenden':'Einblenden'}: ${tile?.label||''}`);
-          quick.classList.toggle('is-off',!enabled);
-          quick.querySelector('ha-icon')?.setAttribute('icon',enabled?'mdi:eye':'mdi:eye-off');}
-        const checkbox=row.querySelector('input[data-field="enabled"]');
-        if(checkbox) checkbox.checked=enabled;
-      });
-      this._applyFilter();
-    }
-    _applyFilter() {
-      const term=this._searchQuery.trim().toLocaleLowerCase('de');
-      let found=0;
+    _applyFilter(){
+      if(!this._config)return;
+      const q=this._searchQuery.trim().toLocaleLowerCase('de');let found=0;
       this.shadowRoot.querySelectorAll('details.tile-item').forEach(el=>{
-        const i=Number(el.dataset.i), t=this._config.tiles[i], meta=KINDS[t.kind]||{};
-        const enabled=t.enabled!==false;
+        const t=this._config.tiles[Number(el.dataset.i)];if(!t)return;
+        const meta=KINDS[t.kind]||{};
         const matchText=`${t.label||''} ${meta.label||''} ${t.kind} ${sourceLabels[t.source||meta.source]||''}`;
-        const match=matchText.toLocaleLowerCase('de').includes(term) &&
-          (this._visibilityFilter==='all' || (this._visibilityFilter==='visible'?enabled:!enabled));
-        el.hidden=!match;
-        if(match) found++;
+        const visible=t.enabled!==false;
+        const match=matchText.toLocaleLowerCase('de').includes(q) &&
+          (this._visibilityFilter==='all'||(this._visibilityFilter==='visible'?visible:!visible));
+        el.hidden=!match;if(match)found++;
       });
-      const empty=this.shadowRoot.querySelector('#empty-filter');
-      if(empty) empty.hidden=found>0;
-      const counter=this.shadowRoot.querySelector('#filter-count');
-      if(counter) counter.textContent=`${found} von ${this._config.tiles.length} Kacheln`;
+      const empty=this.shadowRoot.querySelector('#empty-filter');if(empty)empty.hidden=found>0;
+      const count=this.shadowRoot.querySelector('#filter-count');
+      if(count)count.textContent=`${found} von ${this._config.tiles.length} Kacheln`;
+    }
+    _click(e){
+      const btn=e.target.closest?.('button');if(!btn || !this._config)return;
+      const action=btn.dataset.action;
+      const row=btn.closest('details.tile-item');
+      const index=row?Number(row.dataset.i):-1;
+      // The eye button is outside the <summary>. Safari/iOS can't trigger
+      // the native details toggle when changing visibility.
+      if(action==='toggle-enabled' && index>=0){
+        e.preventDefault();e.stopPropagation();
+        this._commit(cfg=>{cfg.tiles[index].enabled=cfg.tiles[index].enabled===false;},
+          {resetFilter:true});return;
+      }
+      if(btn.id==='undo'){this._history('undo');return;}
+      if(btn.id==='redo'){this._history('redo');return;}
+      if(btn.id==='show-all'||btn.id==='hide-all'){
+        const enabled=btn.id==='show-all';
+        this._commit(cfg=>{cfg.tiles=cfg.tiles.map(t=>({...t,enabled}));},{resetFilter:true});return;
+      }
+      if(btn.id==='add-tile'){
+        const kind=this.shadowRoot.querySelector('#new-kind')?.value;
+        if(!KINDS[kind])return;
+        const at=this._config.tiles.length;
+        this._commit(cfg=>cfg.tiles.push(createTile(kind)),{openIndex:at,resetFilter:true});return;
+      }
+      if(index<0)return;
+      if(action==='reset-tile'){
+        const kind=this._config.tiles[index].kind;
+        this._commit(cfg=>{cfg.tiles[index]={...createTile(kind),enabled:true};},
+          {openIndex:index,resetFilter:true});return;
+      }
+      if(action==='remove-entity'){
+        const j=Number(btn.dataset.j);
+        this._commit(cfg=>{cfg.tiles[index].entities=strings(cfg.tiles[index].entities)
+          .filter((_,n)=>n!==j);},{openIndex:index});return;
+      }
+      if(action==='add-entity'){
+        const picker=row.querySelector('ha-entity-picker[data-field="new-entity"]');
+        const typed=row.querySelector('input[data-field="manual-entity"]')?.value?.trim()||'';
+        const id=typed||picker?.dataset.pending||picker?.value||'';
+        if(!/^[a-z0-9_]+\.[a-z0-9_]+$/i.test(id))return;
+        this._commit(cfg=>{cfg.tiles[index].entities=uniq([...strings(cfg.tiles[index].entities),id]);},
+          {openIndex:index});return;
+      }
+      if(action==='duplicate'){
+        this._commit(cfg=>cfg.tiles.splice(index+1,0,cloneConfig(cfg.tiles[index])),
+          {openIndex:index+1,resetFilter:true});return;
+      }
+      if(action==='delete'){
+        this._commit(cfg=>cfg.tiles.splice(index,1),{openIndex:null,resetFilter:true});return;
+      }
+      if(action==='up' && index>0){
+        this._commit(cfg=>{[cfg.tiles[index],cfg.tiles[index-1]]=[cfg.tiles[index-1],cfg.tiles[index]];},
+          {openIndex:index-1,resetFilter:true});return;
+      }
+      if(action==='down' && index<this._config.tiles.length-1){
+        this._commit(cfg=>{[cfg.tiles[index],cfg.tiles[index+1]]=[cfg.tiles[index+1],cfg.tiles[index]];},
+          {openIndex:index+1,resetFilter:true});return;
+      }
+    }
+    _change(e){
+      const el=e.target;
+      if(!this._config||['ha-icon-picker','ha-entity-picker'].includes(el.localName))return;
+      if(el.id==='tile-filter'){
+        this._visibilityFilter=el.value;this._applyFilter();return;
+      }
+      const global=el.dataset?.global;
+      if(global){
+        let value=el.type==='checkbox'?el.checked:el.value;
+        if(global==='columns')value=Math.max(1,Math.min(4,Number(value)||2));
+        if(global==='gap')value=Math.max(0,Math.min(40,Number(value)||0));
+        this._commit(cfg=>{cfg[global]=value;});return;
+      }
+      const field=el.dataset?.field;
+      if(!field||['manual-entity','new-entity'].includes(field))return;
+      const row=el.closest('details.tile-item');if(!row)return;
+      const i=Number(row.dataset.i);
+      const value=el.type==='checkbox'?el.checked:el.value;
+      this._tileUpdate(i,field,value);
+    }
+    _pickerChanged(e){
+      const el=e.target;
+      if(this._syncingPickers||!this._config||
+          !['ha-icon-picker','ha-entity-picker'].includes(el.localName))return;
+      e.stopPropagation();
+      const row=el.closest('details.tile-item');if(!row)return;
+      const value=e.detail?.value||'';
+      if(el.dataset.field==='new-entity'){
+        el.dataset.pending=value;return;
+      }
+      this._tileUpdate(Number(row.dataset.i),el.dataset.field,value);
+    }
+    _input(e){
+      if(e.target.id==='tile-search'){
+        this._searchQuery=e.target.value;this._applyFilter();
+      }
+      // Other settings commit on "change" (blur/selection), not on every
+      // keystroke: the editor never discards the field while it is being typed.
+    }
+    _keyDown(e){
+      if(e.key!=='Enter')return;
+      if(e.target.matches?.('input[data-field="manual-entity"]')){
+        e.preventDefault();
+        e.target.closest('details.tile-item')?.querySelector('button[data-action="add-entity"]')?.click();
+      }
+    }
+    _toggled(e){
+      if(!this._config)return;
+      const d=e.target;if(!d.matches?.('details'))return;
+      if(d.classList.contains('tile-item')){
+        const i=Number(d.dataset.i);
+        if(d.open){
+          this._openTile=i;
+          this.shadowRoot.querySelectorAll('details.tile-item[open]').forEach(other=>{
+            if(other!==d)other.open=false;
+          });
+        }else if(this._openTile===i)this._openTile=null;
+      }else if(d.classList.contains('settings'))this._settingsOpen=d.open;
+      else if(d.classList.contains('advanced'))this._advancedOpen=d.open;
     }
     _render() {
       if(!this._config) return;
@@ -619,13 +763,13 @@
             <div class="tile-symbol" style="--tile-accent:${color}"><ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon></div>
             <div class="tile-text"><strong>${esc(displayName)}</strong><small>${esc(sourceDetail)}</small></div>
             <span class="status ${enabled?'enabled':''}">${enabled?'Sichtbar':'Ausgeblendet'}</span>
-            <button type="button" class="quick-visibility ${enabled?'':'is-off'}"
+            <span class="chevron" aria-hidden="true">›</span>
+          </summary>
+          <button type="button" class="quick-visibility ${enabled?'':'is-off'}"
               data-action="toggle-enabled" aria-label="${enabled?'Ausblenden':'Einblenden'}: ${esc(displayName)}"
               title="${enabled?'Ausblenden':'Einblenden'}">
               <ha-icon icon="${enabled?'mdi:eye':'mdi:eye-off'}"></ha-icon>
             </button>
-            <span class="chevron" aria-hidden="true">›</span>
-          </summary>
           <div class="edit-body" data-i="${i}">
             <label class="check"><input type="checkbox" data-field="enabled" ${enabled?'checked':''}>Kachel anzeigen</label>
             <section class="edit-section">
@@ -670,6 +814,7 @@
               <button type="button" data-action="up" title="Nach oben" ${i===0?'disabled':''}>↑ Hoch</button>
               <button type="button" data-action="down" title="Nach unten" ${i===cfg.tiles.length-1?'disabled':''}>↓ Runter</button>
               <button type="button" data-action="duplicate" title="Kachel duplizieren">Duplizieren</button>
+              <button type="button" data-action="reset-tile" title="Kachel auf Standardwerte zurücksetzen">Zurücksetzen</button>
               <span class="spacer"></span>
               <button type="button" class="remove" data-action="delete">Entfernen</button>
             </div>
@@ -681,7 +826,7 @@
         <header class="intro">
           <div class="brand-icon"><ha-icon icon="mdi:view-dashboard-outline"></ha-icon></div>
           <div class="intro-copy"><h3>MYHS Central Card</h3><p>Deine zentrale Smart-Home-Übersicht</p></div>
-          <span class="version">Version 1.1.4</span>
+          <span class="version">Version 1.1.5</span>
         </header>
         <details class="settings" ${this._settingsOpen?'open':''}>
           <summary><span class="settings-icon"><ha-icon icon="mdi:tune-variant"></ha-icon></span>
@@ -700,6 +845,10 @@
         </details>
         <div class="tiles-title"><div><h3>Kacheln</h3><p>Antippen, um die Einstellungen zu öffnen</p></div>
           <span class="count-badge">${visible} / ${cfg.tiles.length} sichtbar</span></div>
+        <div class="bulk-actions history-actions">
+          <button type="button" id="undo" ${this._undoStack.length?'':'disabled'}>↶ Rückgängig</button>
+          <button type="button" id="redo" ${this._redoStack.length?'':'disabled'}>↷ Wiederholen</button>
+        </div>
         <div class="bulk-actions"><button type="button" id="show-all">Alle anzeigen</button><button type="button" id="hide-all">Alle ausblenden</button></div>
         <div class="filter-row"><input type="search" id="tile-search" aria-label="Kacheln suchen" placeholder="Kacheln suchen …">
           <select id="tile-filter" aria-label="Kacheln filtern">${option('all','Alle',this._visibilityFilter)}${option('visible','Sichtbar',this._visibilityFilter)}${option('hidden','Ausgeblendet',this._visibilityFilter)}</select></div>
@@ -709,127 +858,20 @@
           <div class="add-controls"><select id="new-kind" aria-label="Neuen Kacheltyp wählen">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
             <button type="button" class="primary" id="add-tile">+ Hinzufügen</button></div></div>
         <p class="footer-note" id="filter-count"></p>
-        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.4</p>
+        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.5</p>
       </div>`;
-      this.shadowRoot.querySelector('#tile-search').value=this._searchQuery;
-      this.shadowRoot.querySelector('#tile-search').addEventListener('input',e=>{this._searchQuery=e.target.value;this._applyFilter();});
-      this.shadowRoot.querySelector('#tile-filter').addEventListener('change',e=>{this._visibilityFilter=e.target.value;this._applyFilter();});
+      const search=this.shadowRoot.querySelector('#tile-search');
+      if(search)search.value=this._searchQuery;
+      this._syncingPickers=true;
+      for(const picker of this.shadowRoot.querySelectorAll('ha-icon-picker, ha-entity-picker')){
+        if(picker.localName==='ha-entity-picker' && this._hass)picker.hass=this._hass;
+        if(picker.dataset.field!=='new-entity')picker.value=picker.getAttribute('value')||'';
+        // Some Home Assistant picker versions dispatch non-bubbling events.
+        // Bind directly as well so the selection is never lost.
+        picker.addEventListener('value-changed',e=>this._pickerChanged(e));
+      }
+      this._syncingPickers=false;
       this._applyFilter();
-      // Visibility buttons live inside <summary>. Suppress the native details
-      // toggle so a quick hide/show never unexpectedly opens or closes an editor.
-      if(!this._quickBound) this.shadowRoot.addEventListener('click',e=>{
-        const quick=e.target.closest?.('button[data-action="toggle-enabled"]');
-        if(!quick)return;
-        e.preventDefault();e.stopPropagation();
-        const row=quick.closest('details.tile-item');
-        if(!row)return;
-        const i=Number(row.dataset.i), tile=this._config.tiles[i];
-        this._setTile(i,'enabled',tile.enabled===false,false);
-      },{capture:true});
-      this._quickBound=true;
-      this.shadowRoot.querySelectorAll('ha-icon-picker').forEach(el=>{
-        el.value=el.getAttribute('value')||'';
-        el.addEventListener('value-changed',e=>{
-          e.stopPropagation();
-          const i=Number(el.closest('details.tile-item').dataset.i);
-          this._setTile(i,'icon',e.detail?.value||'');
-        });
-      });
-      this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(el=>{
-        if(this._hass) el.hass=this._hass;
-        if(el.dataset.field!=='new-entity') el.value=el.getAttribute('value')||'';
-        el.addEventListener('value-changed',e=>{
-          e.stopPropagation();
-          if(el.dataset.field==='new-entity'){el.dataset.pending=e.detail?.value||'';return;}
-          const i=Number(el.closest('details.tile-item').dataset.i);
-          const selected=e.detail?.value||'';
-          this._setTile(i,el.dataset.field,selected);
-          const textField=el.closest('details.tile-item')?.querySelector(`input[data-field="${el.dataset.field}"]`);
-          if(textField) textField.value=selected;
-        });
-      });
-      const panel=this.shadowRoot.querySelector('.editor');
-      panel.addEventListener('toggle',e=>{
-        if(e.target?.matches?.('details.tile-item')) {
-          const d=e.target, i=Number(d.dataset.i);
-          if(d.open){
-            this._openTile=i;
-            this.shadowRoot.querySelectorAll('details.tile-item[open]').forEach(other=>{if(other!==d)other.open=false;});
-          }else if(this._openTile===i) this._openTile=null;
-        } else if(e.target?.matches?.('details.settings')) this._settingsOpen=e.target.open;
-        else if(e.target?.matches?.('details.advanced')) this._advancedOpen=e.target.open;
-      },true);
-      const delegated=e=>{
-        const el=e.target;
-        const globalField=el.dataset?.global;
-        if(globalField){
-          this._config[globalField]=el.type==='checkbox'?el.checked:
-            el.type==='number'||globalField==='columns'?Number(el.value):el.value;
-          this._emit();return;
-        }
-        const field=el.dataset?.field;
-        if(!field||field==='new-entity'||field==='manual-entity'||['ha-entity-picker','ha-icon-picker'].includes(el.localName))return;
-        const detail=el.closest('details.tile-item');if(!detail)return;
-        const i=Number(detail.dataset.i);
-        const val=el.type==='checkbox'?el.checked:el.value;
-        this._setTile(i,field,val,['kind','source','enabled'].includes(field));
-      };
-      panel.addEventListener('change',delegated);
-      panel.addEventListener('input',e=>{
-        if(!['INPUT','TEXTAREA'].includes(e.target.tagName)||e.target.type==='checkbox'||
-            (!e.target.dataset?.field&&!e.target.dataset?.global)) return;
-        // A partially typed MDI icon ("mdi:") is not a valid icon yet.
-        // Commit the complete value on change/Enter, not on each keystroke.
-        if(['icon','manual-entity','entity','automation_entity'].includes(e.target.dataset?.field))return;
-        delegated(e);
-      });
-      panel.addEventListener('keydown',e=>{
-        if(e.key==='Enter' && e.target.matches('input[data-field="manual-entity"]')){
-          e.preventDefault();
-          e.target.closest('details.tile-item')?.querySelector('button[data-action="add-entity"]')?.click();
-        }
-      });
-      panel.addEventListener('click',e=>{
-        const el=e.target.closest('button');if(!el)return;
-        if(el.id==='show-all' || el.id==='hide-all'){
-          const enabled=el.id==='show-all';
-          this._config.tiles=this._config.tiles.map(t=>({...t,enabled}));
-          this._emit(false);
-          this._refreshVisibility();
-          return;
-        }
-        if(el.id==='add-tile'){
-          this._config.tiles.push(createTile(this.shadowRoot.querySelector('#new-kind').value));
-          this._openTile=this._config.tiles.length-1;
-          this._emit(true);return;
-        }
-        const action=el.dataset.action;if(!action)return;
-        const container=el.closest('details.tile-item');if(!container)return;
-        const i=Number(container.dataset.i);
-        if(action==='delete'){
-          this._config.tiles.splice(i,1);this._openTile=null;
-        } else if(action==='up'&&i>0){
-          [this._config.tiles[i-1],this._config.tiles[i]]=[this._config.tiles[i],this._config.tiles[i-1]];
-          this._openTile=i-1;
-        } else if(action==='down'&&i<this._config.tiles.length-1){
-          [this._config.tiles[i+1],this._config.tiles[i]]=[this._config.tiles[i],this._config.tiles[i+1]];
-          this._openTile=i+1;
-        } else if(action==='duplicate'){
-          this._config.tiles.splice(i+1,0,JSON.parse(JSON.stringify(this._config.tiles[i])));
-          this._openTile=i+1;
-        } else if(action==='remove-entity'){
-          this._config.tiles[i].entities=strings(this._config.tiles[i].entities).filter((_,j)=>j!==Number(el.dataset.j));
-          this._openTile=i;
-        } else if(action==='add-entity'){
-          const picker=container.querySelector('ha-entity-picker[data-field="new-entity"]');
-          const typed=container.querySelector('input[data-field="manual-entity"]')?.value?.trim()||'';
-          const id=typed||picker?.dataset.pending||picker?.value||'';
-          if(!id || !/^[a-z0-9_]+\.[a-z0-9_]+$/i.test(id)) return;
-          this._config.tiles[i].entities=uniq([...(this._config.tiles[i].entities||[]),id]);
-          this._openTile=i;
-        } else return;
-        this._emit(true);
-      });
     }
   }
   customElements.define(TAG,CentralOverviewCard);
@@ -837,6 +879,6 @@
   window.customCards=window.customCards||[];
   if (!window.customCards.some(c=>c.type===TAG)) {
     window.customCards.push({type:TAG,name:'MYHS Central Card',
-      description:'16 konfigurierbare Status-Kacheln für Sicherheit, Fenster, Licht, Klima und mehr.',preview:true});
+      description:'16 frei konfigurierbare Status-Kacheln mit visuellem Editor und Home-Assistant-Icons.',preview:true});
   }
 })();
