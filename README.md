@@ -60,15 +60,6 @@ Verwendet ausschließlich die **vorhandenen Home-Assistant-Theme-Variablen**: `-
 
 Zur Vorbereitung der öffentlichen Veröffentlichung ist eine GitHub-Action `.github/workflows/validate.yml` enthalten. Eine Aufnahme in den öffentlichen HACS-Katalog muss separat beantragt werden und wird nicht durch das ZIP garantiert.
 
-### Option B – sofort lokal (ohne GitHub)
-
-1. Nur `dist/central-overview-card.js` in Home Assistant nach `/config/www/central-overview-card.js` kopieren (gegebenenfalls `www` anlegen).
-2. Unter **Einstellungen → Dashboards → Ressourcen** eine Ressource hinzufügen:
-   - URL: `/local/central-overview-card.js`
-   - Typ: **JavaScript-Modul**
-3. Browser vollständig neu laden und die Karte im visuellen Dashboard-Editor hinzufügen.
-
-Falls der Reiter **Ressourcen** nicht sichtbar ist, muss eventuell der erweiterte Modus im Home-Assistant-Profil aktiviert werden; die genaue Oberfläche kann je nach Version abweichen.
 
 ### Mini-YAML-Beispiel (optional, nicht nötig für den Editor)
 
