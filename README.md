@@ -4,7 +4,7 @@
 
 Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYHS Central Card** bündelt wichtige Informationen zum Smart Home in **16 intelligenten Status-Kacheln** – übersichtlich gestaltet, mit dynamischen Farbverläufen und einem vollständig integrierten **visuellen Editor**.
 
-**Version 1.1.3** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
+**Version 1.1.4** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
 
 ![Vorschau der MYHS Central Card](images/preview.png)
 
@@ -48,10 +48,10 @@ Die gesamte Konfiguration erfolgt direkt über den Karteneditor in Home Assistan
 
 Unter **Dashboard bearbeiten → Karte bearbeiten** lassen sich:
 
-- Kacheln schnell suchen, nach Sichtbarkeit filtern, hinzufügen, duplizieren, entfernen, ein- oder ausblenden und umsortieren;
+- Kacheln schnell suchen, nach Sichtbarkeit filtern, einzeln oder gesammelt ein- und ausblenden, hinzufügen, duplizieren, entfernen und umsortieren;
 - Kacheltyp und Datenquelle auswählen;
 - einzelne Entitäten, Bereiche sowie Gruppen und Helfer zuordnen;
-- Namen, `mdi:`-Symbole, Statusfarben und Navigationsziele in getrennten Einstellungsabschnitten ändern;
+- Namen, `mdi:`-Symbole (über den Symbolwähler **oder per Texteingabe**), Statusfarben und Navigationsziele in getrennten Einstellungsabschnitten ändern;
 - Spaltenzahl (1–4), Kachelabstände und Untertitel anpassen.
 
 ## Die 16 Kacheltypen
@@ -116,9 +116,9 @@ Der technische Kartentyp lautet weiterhin `custom:central-overview-card`, damit 
 
 ## Aktualisierung und Fehlerbehebung
 
-**Änderungen werden nicht angezeigt?** In HACS / Marketplace bei der Karte zunächst **Update information** und danach **Redownload / Aktualisieren** wählen; anschließend die Home-Assistant-App vollständig neu starten. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=112` helfen, eine zwischengespeicherte Datei zu umgehen.
+**Änderungen werden nicht angezeigt?** In HACS / Marketplace bei der Karte zunächst **Update information** und danach **Redownload / Aktualisieren** wählen; anschließend die Home-Assistant-App vollständig neu starten. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=114` helfen, eine zwischengespeicherte Datei zu umgehen.
 
-**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein **veröffentlichtes reguläres Release** mit dem Tag `v1.1.3` anlegen (ein Tag allein genügt nicht). Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
+**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein **veröffentlichtes reguläres Release** mit dem Tag `v1.1.4` anlegen (ein Tag allein genügt nicht). Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
 
 **Geräte fehlen in der Übersicht?** Geräteklasse und Entitätsdomäne prüfen oder die Entitäten im visuellen Editor gezielt auswählen.
 
@@ -129,9 +129,11 @@ node --check dist/central-overview-card.js
 node tests/smoke.cjs
 # Optional: Browsertest mit Playwright und Chromium
 python tests/browser_smoke.py
+python tests/regression.py
+python tests/no_pickers.py
 ```
 
-JavaScript-Syntax, Statusberechnungen und Interaktionen des visuellen Editors wurden lokal geprüft. Die Vorschaubilder verwenden Beispieldaten. Ein vollständiger Praxistest in einer produktiven Home-Assistant-Installation und die öffentliche HACS-Veröffentlichung stehen noch aus.
+JavaScript-Syntax, die 16 Statusberechnungen sowie Sichtbarkeit, Speicherung, manuelle Icons und Entitätsauswahl wurden lokal mit Node.js und Chromium geprüft. Die Tests simulieren Home-Assistant-Ereignisse; reale Integrationen und iOS wurden nicht vollständig verifiziert. Die Vorschaubilder verwenden Beispieldaten. Ein vollständiger Praxistest in einer produktiven Home-Assistant-Installation und die öffentliche HACS-Veröffentlichung stehen noch aus.
 
 ## Lizenz
 

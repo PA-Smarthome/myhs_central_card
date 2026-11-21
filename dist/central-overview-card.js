@@ -1,4 +1,4 @@
-/* MYHS Central Card | Version 1.1.3 | MIT | Home Assistant Lovelace | no dependencies */
+/* MYHS Central Card | Version 1.1.4 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -54,7 +54,8 @@
   const mdiIcon = (candidate, kind) =>
     (typeof candidate === 'string' && /^mdi:[a-z0-9][a-z0-9-]*$/i.test(candidate))
       ? candidate : (KINDS[kind]?.icon || 'mdi:help-circle');
-  const hasState = (entity) => Boolean(entity && !['unknown','unavailable'].includes(entity.state));
+  const hasState = (entity) => Boolean(entity && typeof entity.state === 'string' &&
+    entity.state.trim() !== '' && !['unknown','unavailable'].includes(entity.state));
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (x) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   const countMessage = (n, singular, plural) => n === 1 ? singular : plural(n);
   const stateById = (hass, id) => hass?.states?.[id];
@@ -69,7 +70,8 @@
     const st = stateById(hass,id);
     const members = st?.attributes?.entity_id;
     const ids = Array.isArray(members) ? members : (typeof members === 'string' ? members.split(',').map(s=>s.trim()) : []);
-    if (!ids.length) return st ? [id] : [];
+    // Preserve missing members so a stale group cannot look entirely safe.
+    if (!ids.length) return [id];
     return uniq(ids.flatMap(child => groupChildren(hass,child,visited)));
   }
   function autoCandidate(kind, st) {
@@ -98,7 +100,7 @@
     const source = tile.source || KINDS[tile.kind]?.source || 'selected';
     let ids = [];
     if (source === 'group') ids = groupChildren(hass, tile.entity);
-    else if (source === 'selected') ids = uniq([...strings(tile.entities), ...(['alarm','lock'].includes(tile.kind) && tile.entity ? [tile.entity] : [])]);
+    else if (source === 'selected') ids = uniq(strings(tile.entities).length ? strings(tile.entities) : (tile.entity ? [tile.entity] : []));
     else {
       ids = ['alarm','lock'].includes(tile.kind) && tile.entity ? [tile.entity] :
         Object.values(hass?.states || {}).filter(st => autoCandidate(tile.kind,st)).map(st => st.entity_id);
@@ -111,7 +113,8 @@
     }
     if (tile.prefix) ids = ids.filter(id => id.startsWith(tile.prefix));
     if (tile.area) ids = ids.filter(id => areaId(hass,id) === tile.area);
-    return uniq(ids).map(id => stateById(hass,id)).filter(Boolean);
+    // An unavailable/deleted member is still counted as unknown, never silently dropped.
+    return uniq(ids).map(id => stateById(hass,id) || {entity_id:id,state:'unavailable',attributes:{}});
   }
   function activeCountByRooms(hass, arr) {
     const rooms = uniq(arr.map(st => areaId(hass,st.entity_id)));
@@ -130,7 +133,7 @@
     const usable = list.filter(hasState);
     if (!usable.length) return result('Nicht verfügbar',false,{missing:true});
     if (kind === 'alarm' || kind === 'lock') {
-      if (list.length > 1 && source === 'auto') return result('Entität auswählen',false,{missing:true});
+      if (list.length > 1) return result('Eine Entität auswählen',false,{missing:true});
       const st = usable[0], s = st.state;
       if (kind === 'alarm') {
         const names = {disarmed:'Unscharf · Zuhause',armed_home:legacy?'Unscharf · Zuhause':'Scharf · Zuhause',
@@ -149,7 +152,10 @@
     }
     if (kind === 'windows') {
       const count = usable.filter(st => st.state === 'on' || st.state === 'open').length;
-      return result(count===0?'Alle geschlossen':countMessage(count,'1 geöffnet',n=>`${n} geöffnet`),count>0);
+      const unknown = list.length - usable.length;
+      const text = count>0 ? countMessage(count,'1 geöffnet',n=>`${n} geöffnet`) : 'Alle geschlossen';
+      return result(unknown ? (count ? `${text} · ${unknown} unbekannt` : `${unknown} Fenster unbekannt`) : text,
+        count>0 || unknown>0,{tone:unknown?'error':undefined});
     }
     if (kind === 'lights' || kind === 'media' || kind === 'presence') {
       const on = usable.filter(st => kind==='media' ? ['on','playing','paused','idle'].includes(st.state) : st.state === 'on');
@@ -180,26 +186,29 @@
         paused?countMessage(paused,'Pausiert in 1 Raum',n=>`Pausiert in ${n} Räumen`):'Alle Räume aus',playing>0);
     }
     if (kind === 'shading') {
-      const positional = usable.filter(st=> Number.isFinite(Number(st.attributes?.current_position)) &&
-        st.attributes?.current_position !== undefined && st.attributes?.current_position !== null);
       const auto = tile.automation_entity && stateById(hass,tile.automation_entity)?.state === 'on';
-      if (!positional.length) {
-        const opened = usable.filter(st=>st.state==='open').length;
-        const closed = usable.filter(st=>st.state==='closed').length;
-        return result(opened===usable.length?'Alle offen':closed===usable.length?'Alle geschlossen':
-          `${opened} offen · ${closed} geschlossen`, Boolean(auto || closed>0), {icon:auto?'mdi:blinds-horizontal':undefined});
+      let open=0,closed=0,partial=0,unknown=list.length-usable.length;
+      for(const st of usable){
+        const raw=st.attributes?.current_position;
+        const position=raw===null||raw===undefined||raw===''?NaN:Number(raw);
+        if(Number.isFinite(position) && position>=0 && position<=100){
+          if(position===100)open++; else if(position===0)closed++; else partial++;
+        } else if(st.state==='open')open++;
+        else if(st.state==='closed')closed++;
+        else if(['opening','closing'].includes(st.state))partial++;
+        else unknown++;
       }
-      const total=positional.length;
-      const open=positional.filter(st=>Number(st.attributes.current_position)===100).length;
-      const closed=positional.filter(st=>Number(st.attributes.current_position)===0).length;
-      const partial=total-open-closed;
-      const words = [open?`${open} offen`:null,partial?`${partial} teilweise`:null,closed?`${closed} zu`:null].filter(Boolean);
-      return result(open===total?'Alle offen':closed===total?'Alle geschlossen':words.join(' · '),
-        Boolean(auto||closed||partial), {icon:auto?'mdi:blinds-horizontal':closed===total?'mdi:blinds':'mdi:blinds-open'});
+      const total=list.length;
+      const words=[open?`${open} offen`:null,partial?`${partial} teilweise`:null,
+        closed?`${closed} zu`:null,unknown?`${unknown} unbekannt`:null].filter(Boolean);
+      const text=unknown ? words.join(' · ') : open===total?'Alle offen' : closed===total?'Alle geschlossen' : words.join(' · ');
+      return result(text,Boolean(auto||closed||partial||unknown),
+        {tone:unknown?'error':undefined,icon:auto?'mdi:blinds-horizontal':closed===total?'mdi:blinds':'mdi:blinds-open'});
     }
     if (kind === 'air') {
       const okay = (tile.good_states || 'gut,good,ok,okay,ausgewogen').split(',').map(s=>s.trim().toLowerCase());
-      const threshold = tile.threshold === '' || tile.threshold === undefined ? null : Number(tile.threshold);
+      const threshold = tile.threshold === '' || tile.threshold === undefined || tile.threshold === null ? null : Number(tile.threshold);
+      if (threshold !== null && !Number.isFinite(threshold)) return result('Grenzwert prüfen',false,{missing:true});
       let noRule=false;
       const bad=usable.filter(st=>{
         const numeric=Number(st.state);
@@ -214,10 +223,12 @@
         countMessage(count,'1 Sensor prüfen!',n=>`${n} Sensoren prüfen!`),count>0);
     }
     if (kind === 'people') {
-      const home = usable.filter(st=>st.state==='home' || (tile.include_zones && st.state !== 'not_home'));
-      const count=home.length;
-      return result(count===0?'Alle abwesend':count===usable.length?'Alle anwesend':
-        countMessage(count,'1 Person anwesend',n=>`${n} Personen anwesend`),count>0);
+      const home=usable.filter(st=>st.state==='home' || (tile.include_zones && st.state !== 'not_home'));
+      const count=home.length,unknown=list.length-usable.length;
+      const text=unknown ? `${count} anwesend · ${unknown} unbekannt` :
+        count===0?'Alle abwesend' : count===usable.length?'Alle anwesend':
+        countMessage(count,'1 Person anwesend',n=>`${n} Personen anwesend`);
+      return result(text,count>0 || unknown>0,{tone:unknown?'warning':undefined});
     }
     if (kind === 'vehicles') {
       const wanted=(tile.active_state || 'on').toLowerCase();
@@ -319,7 +330,7 @@
     _update() {
       if (!this._config) return;
       if (!this._rendered) {
-        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.3"><div class="grid"></div></ha-card>`;
+        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.4"><div class="grid"></div></ha-card>`;
         this.shadowRoot.querySelector('.grid').addEventListener('click',(ev)=>{
           const btn=ev.target.closest('button.tile');
           if (!btn) return;
@@ -345,7 +356,10 @@
         const color=COLOR_VARS[selectedTone] || COLOR_VARS.info;
         const colored=status.colorize || status.active;
         const textTone=colored ? color : 'var(--secondary-text-color)';
-        const icon=mdiIcon(status.icon || t.icon,t.kind);
+        // The user-selected icon always wins. Automatic state icons are only used
+        // while the tile still uses its original default symbol.
+        const customIcon=Boolean(t.icon && t.icon!==KINDS[t.kind].icon);
+        const icon=mdiIcon(customIcon ? t.icon : (status.icon || t.icon),t.kind);
         const label=t.label === undefined ? KINDS[t.kind].label : t.label;
         const navigable=typeof t.navigation_path==='string' &&
           (t.navigation_path.startsWith('#') || (t.navigation_path.startsWith('/') && !t.navigation_path.startsWith('//')));
@@ -408,8 +422,6 @@
     .check-subtext {font-size:11px;color:var(--secondary-text-color);margin:4px 0 0 27px;}
     ha-entity-picker,ha-icon-picker {display:block;width:100%;min-height:40px;}
     ha-icon-picker:not(:defined) {display:none;}
-    .icon-fallback {display:none;}
-    ha-icon-picker:not(:defined)+.icon-fallback {display:flex;}
     .tiles-title {display:flex;justify-content:space-between;align-items:center;gap:10px;}
     .tiles-title h3 {margin:0;font-size:15px;}
     .tiles-title p {margin:3px 0 0;color:var(--secondary-text-color);font-size:12px;}
@@ -431,6 +443,21 @@
     .status {border-radius:20px;padding:4px 7px;background:var(--secondary-background-color,rgba(0,0,0,.04));
       color:var(--secondary-text-color);font-size:10px;line-height:1.3;white-space:nowrap;}
     .status.enabled {color:var(--success-color,var(--green-color,#3c9b60));}
+    .quick-visibility {display:inline-flex;align-items:center;justify-content:center;
+      flex:none;min-width:40px;min-height:40px;border-radius:9px;padding:6px;
+      border:1px solid var(--divider-color,#ddd);
+      background:var(--secondary-background-color,var(--card-background-color,#fff));
+      color:var(--primary-text-color);cursor:pointer;}
+    .quick-visibility ha-icon {--mdc-icon-size:19px;}
+    .quick-visibility.is-off {color:var(--secondary-text-color);}
+    .bulk-actions {display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+    .bulk-actions button {flex:1;min-width:110px;}
+    .icon-help {font-size:11px;color:var(--secondary-text-color);margin:0;line-height:1.5;}
+    .input-with-preview {display:flex;gap:9px;align-items:center;}
+    .input-with-preview input {flex:1;min-width:0;}
+    .input-with-preview ha-icon {color:var(--secondary-text-color);--mdc-icon-size:24px;}
+    ha-entity-picker:not(:defined) {display:none;}
+    .manual-entity {margin-top:7px;}
     .edit-body {display:grid;gap:16px;padding:15px;border-top:1px solid var(--divider-color,#ddd);}
     .edit-section + .edit-section {border-top:1px solid var(--divider-color,#ddd);padding-top:15px;}
     .hint {font-size:11px;line-height:1.5;margin:6px 0 0;color:var(--secondary-text-color);}
@@ -493,7 +520,7 @@
     _setTile(i,field,value,structural=false) {
       const previous=this._config.tiles[i];
       if (!previous) return;
-      if(field==='icon') value=mdiIcon(value,previous.kind);
+      if(field==='icon') value=mdiIcon(String(value||'').trim(),previous.kind);
       const tile={...previous,[field]:value};
       if(field==='kind' && KINDS[value]) {
         const oldDefaults=KINDS[previous.kind]||{}, defaults=KINDS[value];
@@ -506,6 +533,36 @@
       }
       this._config.tiles[i]=tile;
       this._emit(structural);
+      if(!structural && field==='icon') {
+        const row=this.shadowRoot.querySelector(`details.tile-item[data-i="${i}"]`);
+        row?.querySelector('.tile-symbol ha-icon')?.setAttribute('icon',value);
+        row?.querySelector('.icon-preview')?.setAttribute('icon',value);
+        const input=row?.querySelector('input[data-field="icon"]');
+        if(input) input.value=value;
+        const picker=row?.querySelector('ha-icon-picker[data-field="icon"]');
+        if(picker) picker.value=value;
+      }
+      if(!structural && field==='enabled') this._refreshVisibility();
+    }
+    _refreshVisibility() {
+      const shown=this._config.tiles.filter(t=>t.enabled!==false).length;
+      const badge=this.shadowRoot.querySelector('.count-badge');
+      if(badge) badge.textContent=`${shown} / ${this._config.tiles.length} sichtbar`;
+      this.shadowRoot.querySelectorAll('details.tile-item').forEach(row=>{
+        const tile=this._config.tiles[Number(row.dataset.i)];
+        const enabled=tile?.enabled!==false;
+        row.classList.toggle('is-off',!enabled);
+        const status=row.querySelector('.status');
+        if(status){status.textContent=enabled?'Sichtbar':'Ausgeblendet';status.classList.toggle('enabled',enabled);}
+        const quick=row.querySelector('button[data-action="toggle-enabled"]');
+        if(quick){quick.title=enabled?'Ausblenden':'Einblenden';
+          quick.setAttribute('aria-label',`${enabled?'Ausblenden':'Einblenden'}: ${tile?.label||''}`);
+          quick.classList.toggle('is-off',!enabled);
+          quick.querySelector('ha-icon')?.setAttribute('icon',enabled?'mdi:eye':'mdi:eye-off');}
+        const checkbox=row.querySelector('input[data-field="enabled"]');
+        if(checkbox) checkbox.checked=enabled;
+      });
+      this._applyFilter();
     }
     _applyFilter() {
       const term=this._searchQuery.trim().toLocaleLowerCase('de');
@@ -540,7 +597,8 @@
         const sourceDetail=isSelected?`${strings(tile.entities).length} ausgewählt`:
           isGroup?'Gruppe / Helfer':'Automatisch';
         const advancedFields=[];
-        if(tile.kind==='shading')advancedFields.push(`<label class="control wide">Automatik-Entität (optional)<ha-entity-picker data-field="automation_entity" value="${esc(tile.automation_entity||'')}"></ha-entity-picker></label>`);
+        if(tile.kind==='shading')advancedFields.push(`<div class="control wide"><span>Automatik-Entität (optional)</span><ha-entity-picker data-field="automation_entity" value="${esc(tile.automation_entity||'')}"></ha-entity-picker>
+          <input data-field="automation_entity" value="${esc(tile.automation_entity||'')}" aria-label="Automatik Entitäts-ID manuell" placeholder="Entitäts-ID eingeben"></div>`);
         if(tile.kind==='air')advancedFields.push(`<label class="control wide">Gute Zustände (durch Komma trennen)
            <input data-field="good_states" value="${esc(tile.good_states??'gut,good,ok,okay,ausgewogen')}"></label>
            <label class="control">Grenzwert für Zahlensensoren
@@ -553,12 +611,19 @@
           <div class="entity-list">${strings(tile.entities).map((id,j)=>`<span class="chip">${esc(id)}<button type="button" data-action="remove-entity" data-j="${j}" title="Entität entfernen" aria-label="${esc(id)} entfernen">×</button></span>`).join('')}</div>
           <div class="add-row"><ha-entity-picker data-field="new-entity" allow-custom-entity></ha-entity-picker>
           <button type="button" data-action="add-entity">+ Hinzufügen</button></div>
-          <p class="hint">Du kannst mehrere Entitäten aus deiner Installation auswählen.</p></div>`:'';
+          <input class="manual-entity" data-field="manual-entity" aria-label="Entitäts-ID manuell eingeben"
+            placeholder="Alternativ Entitäts-ID eingeben (z. B. light.wohnzimmer)" spellcheck="false">
+          <p class="hint">Entität aus dem Menü wählen oder eine Entitäts-ID eingeben und auf „Hinzufügen“ tippen.</p></div>`:'';
         return `<details class="tile-item ${enabled?'':'is-off'}" data-i="${i}" ${this._openTile===i?'open':''}>
           <summary aria-label="Kachel ${i+1}: ${esc(displayName)} bearbeiten">
             <div class="tile-symbol" style="--tile-accent:${color}"><ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon></div>
             <div class="tile-text"><strong>${esc(displayName)}</strong><small>${esc(sourceDetail)}</small></div>
             <span class="status ${enabled?'enabled':''}">${enabled?'Sichtbar':'Ausgeblendet'}</span>
+            <button type="button" class="quick-visibility ${enabled?'':'is-off'}"
+              data-action="toggle-enabled" aria-label="${enabled?'Ausblenden':'Einblenden'}: ${esc(displayName)}"
+              title="${enabled?'Ausblenden':'Einblenden'}">
+              <ha-icon icon="${enabled?'mdi:eye':'mdi:eye-off'}"></ha-icon>
+            </button>
             <span class="chevron" aria-hidden="true">›</span>
           </summary>
           <div class="edit-body" data-i="${i}">
@@ -570,7 +635,13 @@
                 <label class="control">Untertitel<input data-field="label" value="${esc(displayName)}" placeholder="${esc(k.label)}"></label>
                 <div class="control wide"><span>Symbol</span>
                   <ha-icon-picker data-field="icon" label="Home-Assistant-Symbol" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon-picker>
-                  <label class="control icon-fallback">Symbol (mdi:)<input data-field="icon" value="${esc(mdiIcon(tile.icon,tile.kind))}" placeholder="mdi:home"></label></div>
+                  <div class="input-with-preview">
+                    <input data-field="icon" value="${esc(mdiIcon(tile.icon,tile.kind))}"
+                      aria-label="Eigenes Home-Assistant-Symbol" placeholder="mdi:home" spellcheck="false">
+                    <ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}" class="icon-preview"></ha-icon>
+                  </div>
+                  <p class="icon-help">Symbol direkt im Menü auswählen oder eine eigene mdi:-Bezeichnung eingeben (z. B. mdi:shield-check).</p>
+                </div>
                 <label class="control wide">Aktive Farbe<select data-field="tone">${['alarm','lock'].includes(tile.kind)?option('auto','Automatisch nach Zustand',tile.tone||'auto'):''}${Object.entries(COLOR_LABELS).map(([v,d])=>option(v,d,tile.tone||k.tone)).join('')}</select></label>
               </div>
             </section>
@@ -580,8 +651,10 @@
                 <label class="control wide">Auswahlmethode<select data-field="source">${Object.entries(sourceLabels).map(([v,d])=>option(v,d,mode)).join('')}</select></label>
                 ${mode==='auto'?`<label class="control">Bereich<select data-field="area">${option('','Alle Bereiche',tile.area||'')}${areas.map(a=>option(a.area_id||a.id,a.name,tile.area||'')).join('')}</select></label>
                   <label class="control">Entitäts-Präfix (optional)<input data-field="prefix" value="${esc(tile.prefix||'')}" placeholder="z. B. light."></label>`:''}
-                ${(isGroup||['alarm','lock'].includes(tile.kind))?`<label class="control wide">${isGroup?'Gruppe / Helfer':'Einzelne Entität (optional)'}
-                  <ha-entity-picker data-field="entity" allow-custom-entity value="${esc(tile.entity||'')}"></ha-entity-picker></label>`:''}
+                ${(isGroup||(mode==='auto' && ['alarm','lock'].includes(tile.kind)))?`<div class="control wide"><span>${isGroup?'Gruppe / Helfer':'Einzelne Entität (optional)'}</span>
+                  <ha-entity-picker data-field="entity" allow-custom-entity value="${esc(tile.entity||'')}"></ha-entity-picker>
+                  <input data-field="entity" value="${esc(tile.entity||'')}" aria-label="Entitäts-ID manuell"
+                    placeholder="Alternativ Entitäts-ID eingeben" spellcheck="false"></div>`:''}
                 ${selectedFields}
               </div>
               ${mode==='auto'?'<p class="hint">Passende Entitäten werden automatisch über Home Assistant erkannt. Über Bereich und Präfix kannst du die Auswahl eingrenzen.</p>':''}
@@ -608,7 +681,7 @@
         <header class="intro">
           <div class="brand-icon"><ha-icon icon="mdi:view-dashboard-outline"></ha-icon></div>
           <div class="intro-copy"><h3>MYHS Central Card</h3><p>Deine zentrale Smart-Home-Übersicht</p></div>
-          <span class="version">Version 1.1.3</span>
+          <span class="version">Version 1.1.4</span>
         </header>
         <details class="settings" ${this._settingsOpen?'open':''}>
           <summary><span class="settings-icon"><ha-icon icon="mdi:tune-variant"></ha-icon></span>
@@ -627,6 +700,7 @@
         </details>
         <div class="tiles-title"><div><h3>Kacheln</h3><p>Antippen, um die Einstellungen zu öffnen</p></div>
           <span class="count-badge">${visible} / ${cfg.tiles.length} sichtbar</span></div>
+        <div class="bulk-actions"><button type="button" id="show-all">Alle anzeigen</button><button type="button" id="hide-all">Alle ausblenden</button></div>
         <div class="filter-row"><input type="search" id="tile-search" aria-label="Kacheln suchen" placeholder="Kacheln suchen …">
           <select id="tile-filter" aria-label="Kacheln filtern">${option('all','Alle',this._visibilityFilter)}${option('visible','Sichtbar',this._visibilityFilter)}${option('hidden','Ausgeblendet',this._visibilityFilter)}</select></div>
         <div class="tile-list">${cfg.tiles.map(editorTile).join('')}
@@ -635,12 +709,24 @@
           <div class="add-controls"><select id="new-kind" aria-label="Neuen Kacheltyp wählen">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
             <button type="button" class="primary" id="add-tile">+ Hinzufügen</button></div></div>
         <p class="footer-note" id="filter-count"></p>
-        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.3</p>
+        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.4</p>
       </div>`;
       this.shadowRoot.querySelector('#tile-search').value=this._searchQuery;
       this.shadowRoot.querySelector('#tile-search').addEventListener('input',e=>{this._searchQuery=e.target.value;this._applyFilter();});
       this.shadowRoot.querySelector('#tile-filter').addEventListener('change',e=>{this._visibilityFilter=e.target.value;this._applyFilter();});
       this._applyFilter();
+      // Visibility buttons live inside <summary>. Suppress the native details
+      // toggle so a quick hide/show never unexpectedly opens or closes an editor.
+      if(!this._quickBound) this.shadowRoot.addEventListener('click',e=>{
+        const quick=e.target.closest?.('button[data-action="toggle-enabled"]');
+        if(!quick)return;
+        e.preventDefault();e.stopPropagation();
+        const row=quick.closest('details.tile-item');
+        if(!row)return;
+        const i=Number(row.dataset.i), tile=this._config.tiles[i];
+        this._setTile(i,'enabled',tile.enabled===false,false);
+      },{capture:true});
+      this._quickBound=true;
       this.shadowRoot.querySelectorAll('ha-icon-picker').forEach(el=>{
         el.value=el.getAttribute('value')||'';
         el.addEventListener('value-changed',e=>{
@@ -656,7 +742,10 @@
           e.stopPropagation();
           if(el.dataset.field==='new-entity'){el.dataset.pending=e.detail?.value||'';return;}
           const i=Number(el.closest('details.tile-item').dataset.i);
-          this._setTile(i,el.dataset.field,e.detail?.value||'');
+          const selected=e.detail?.value||'';
+          this._setTile(i,el.dataset.field,selected);
+          const textField=el.closest('details.tile-item')?.querySelector(`input[data-field="${el.dataset.field}"]`);
+          if(textField) textField.value=selected;
         });
       });
       const panel=this.shadowRoot.querySelector('.editor');
@@ -679,7 +768,7 @@
           this._emit();return;
         }
         const field=el.dataset?.field;
-        if(!field||field==='new-entity'||['ha-entity-picker','ha-icon-picker'].includes(el.localName))return;
+        if(!field||field==='new-entity'||field==='manual-entity'||['ha-entity-picker','ha-icon-picker'].includes(el.localName))return;
         const detail=el.closest('details.tile-item');if(!detail)return;
         const i=Number(detail.dataset.i);
         const val=el.type==='checkbox'?el.checked:el.value;
@@ -687,11 +776,28 @@
       };
       panel.addEventListener('change',delegated);
       panel.addEventListener('input',e=>{
-        if(!['INPUT','TEXTAREA'].includes(e.target.tagName)||e.target.type==='checkbox'||!e.target.dataset?.field&&!e.target.dataset?.global)return;
+        if(!['INPUT','TEXTAREA'].includes(e.target.tagName)||e.target.type==='checkbox'||
+            (!e.target.dataset?.field&&!e.target.dataset?.global)) return;
+        // A partially typed MDI icon ("mdi:") is not a valid icon yet.
+        // Commit the complete value on change/Enter, not on each keystroke.
+        if(['icon','manual-entity','entity','automation_entity'].includes(e.target.dataset?.field))return;
         delegated(e);
+      });
+      panel.addEventListener('keydown',e=>{
+        if(e.key==='Enter' && e.target.matches('input[data-field="manual-entity"]')){
+          e.preventDefault();
+          e.target.closest('details.tile-item')?.querySelector('button[data-action="add-entity"]')?.click();
+        }
       });
       panel.addEventListener('click',e=>{
         const el=e.target.closest('button');if(!el)return;
+        if(el.id==='show-all' || el.id==='hide-all'){
+          const enabled=el.id==='show-all';
+          this._config.tiles=this._config.tiles.map(t=>({...t,enabled}));
+          this._emit(false);
+          this._refreshVisibility();
+          return;
+        }
         if(el.id==='add-tile'){
           this._config.tiles.push(createTile(this.shadowRoot.querySelector('#new-kind').value));
           this._openTile=this._config.tiles.length-1;
@@ -716,8 +822,9 @@
           this._openTile=i;
         } else if(action==='add-entity'){
           const picker=container.querySelector('ha-entity-picker[data-field="new-entity"]');
-          const id=picker?.dataset.pending||picker?.value||'';
-          if(!id)return;
+          const typed=container.querySelector('input[data-field="manual-entity"]')?.value?.trim()||'';
+          const id=typed||picker?.dataset.pending||picker?.value||'';
+          if(!id || !/^[a-z0-9_]+\.[a-z0-9_]+$/i.test(id)) return;
           this._config.tiles[i].entities=uniq([...(this._config.tiles[i].entities||[]),id]);
           this._openTile=i;
         } else return;

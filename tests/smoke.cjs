@@ -7,8 +7,8 @@ assert(!src.includes('--custom_'), 'Must not depend on custom theme variables');
 assert(!src.includes('edelmann'), 'Must not include original installation-specific entities');
 assert(!src.includes('local:'), 'Must not depend on third-party or local icon collections');
 assert(src.includes('ha-icon-picker'), 'Must provide native Home Assistant icon picker');
-assert(src.includes('Version 1.1.3'), 'Editor must display Version 1.1.3');
-assert(src.includes('data-card-version=\"1.1.3\"'), 'Card version must match');
+assert(src.includes('Version 1.1.4'), 'Editor must display Version 1.1.4');
+assert(src.includes('data-card-version=\"1.1.4\"'), 'Card version must match');
 
 const testSrc = src.replace(/\}\)\(\);\s*$/, 'window.__test = { compute, createConfig, resolveEntities, KINDS };})();');
 const registry = new Map();
@@ -85,7 +85,22 @@ is('vehicles','1 Fahrzeug fährt',{source:'selected',entities:['binary_sensor.ca
 is('automations','1 Automation aktiviert');
 assert.equal(run('vehicles').missing,true,'Cars must not be guessed from entity names');
 assert.equal(run('air').missing,true,'Air quality must not be guessed from entity names');
+// A missing member must NOT make a window or shading overview look safe.
+assert.equal(run('windows',{source:'selected',entities:['binary_sensor.bath_window','binary_sensor.missing']}).text,'1 Fenster unbekannt');
+assert.equal(run('windows',{source:'selected',entities:['binary_sensor.kitchen_window','binary_sensor.missing']}).text,'1 geöffnet · 1 unbekannt');
 assert.equal(run('windows',{source:'selected',entities:['binary_sensor.custom_sensor']}).missing,true);
+assert.equal(run('shading',{source:'selected',entities:['cover.a','cover.not_found']}).text,'1 offen · 1 unbekannt');
+assert.equal(run('shading',{source:'selected',entities:['cover.a','cover.b']}).text,'1 offen · 1 zu');
+const groupRef=mk('group.windows_bad','on',{entity_id:['binary_sensor.bath_window','binary_sensor.missing']});
+states[groupRef.entity_id]=groupRef;
+assert.equal(run('windows',{source:'group',entity:groupRef.entity_id}).text,'1 Fenster unbekannt');
+assert.equal(run('air',{source:'selected',entities:['sensor.co2'],threshold:'abc'}).text,'Grenzwert prüfen');
+states['person.ada'].state='unknown';
+assert.equal(run('people').text,'0 anwesend · 1 unbekannt');
+states['person.ada'].state='home';
+states['lock.back']=mk('lock.back','unlocked');
+assert.equal(run('lock').text,'Eine Entität auswählen');
+assert.equal(run('lock',{source:'selected',entities:['lock.front']}).text,'Verriegelt');
 assert.equal(registry.has('central-overview-card-editor'),true);
 assert.equal(windowStub.customCards[0].type,'central-overview-card');
 console.log('PASS: 16 universal types, themes, group expansion, entity selection, main status calculations.');
