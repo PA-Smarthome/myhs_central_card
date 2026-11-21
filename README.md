@@ -2,80 +2,80 @@
 
 **MYHS Cards for Home Assistant**
 
-A modern, customizable dashboard card that brings your smart home's most important information together in one place. MYHS Central Card features **16 status tiles**, subtle theme-aware gradients, and a **built-in visual editor**—without requiring `custom:button-card` or additional icon packs.
+Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYHS Central Card** bündelt wichtige Informationen zum Smart Home in **16 intelligenten Status-Kacheln** – übersichtlich gestaltet, mit dynamischen Farbverläufen und einem vollständig integrierten **visuellen Editor**.
 
-**Version 1.1.2** · **16 tile types** · **Visual editor** · **Native Home Assistant icons**
+**Version 1.1.2** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
 
-![MYHS Central Card preview](images/preview.png)
+![Vorschau der MYHS Central Card](images/preview.png)
 
-*Preview uses demonstration data. Tile content and colors depend on your Home Assistant setup.*
+*Die Vorschau zeigt Beispieldaten. Angezeigte Werte und Farben richten sich nach deiner Home-Assistant-Konfiguration.*
 
-## Highlights
+## Funktionen
 
-- **One clear overview:** Security, lights, climate, media, presence, and more in a single card.
-- **Visual configuration:** Add, remove, reorder, rename, and customize tiles directly in Home Assistant.
-- **Flexible entity selection:** Use automatic discovery, individual entities, or groups/helpers.
-- **Native styling:** Material Design Icons (`mdi:`), Home Assistant theme colors, and light/dark theme support.
-- **Adjustable layout:** Choose 1–4 columns, tile spacing, labels, and navigation targets.
-- **Display-focused:** Tiles show status and optionally navigate to a view; they do not directly operate devices.
+- **Alles auf einen Blick:** Statusinformationen zu Sicherheit, Fenstern, Licht, Klima, Medien, Anwesenheit und weiteren Bereichen.
+- **Einfach anpassbar:** Kacheln direkt im Home-Assistant-Menü hinzufügen, entfernen, ausblenden und neu anordnen.
+- **Flexible Datenquellen:** Automatische Erkennung, frei gewählte Entitäten oder Gruppen und Helfer.
+- **Passendes Design:** Home-Assistant-Theme-Farben, integrierte Material Design Icons (`mdi:`) und Unterstützung für helle und dunkle Themes.
+- **Individuelles Layout:** Ein bis vier Spalten, einstellbare Abstände, Beschriftungen und Navigationsziele.
+- **Status und Navigation:** Die Kacheln zeigen Informationen an und können auf Dashboard-Ansichten verlinken. Geräte werden nicht direkt geschaltet.
 
 ## Installation
 
-### HACS / Home Assistant Marketplace
+### Über HACS / Home Assistant Marketplace
 
-1. Open **HACS** (or **Marketplace**) in Home Assistant.
-2. Add this GitHub repository as a **custom Dashboard repository** if it is not listed in the catalog.
-3. Install **MYHS Central Card** and reload your dashboard.
-4. Select **MYHS Central Card** in **Edit dashboard → Add card**.
+1. **HACS** beziehungsweise den **Marketplace** in Home Assistant öffnen.
+2. Falls die Karte nicht im Katalog verfügbar ist, das GitHub-Repository als **benutzerdefiniertes Dashboard-Repository** hinzufügen.
+3. **MYHS Central Card** installieren und die Dashboard-Oberfläche neu laden.
+4. Unter **Dashboard bearbeiten → Karte hinzufügen** die **MYHS Central Card** auswählen.
 
-> HACS installs from a GitHub repository, not from a downloaded ZIP file. See [GITHUB-UPLOAD.md](GITHUB-UPLOAD.md) for repository setup and publishing instructions.
+> Für die Installation über HACS wird das GitHub-Repository verwendet, nicht die heruntergeladene ZIP-Datei. Hinweise zur Veröffentlichung findest du unter [GitHub-Einrichtung](GITHUB-UPLOAD.md).
 
-### Manual installation
+### Manuelle Installation
 
-1. Copy `dist/central-overview-card.js` to `/config/www/central-overview-card.js`.
-2. In **Settings → Dashboards → Resources**, add `/local/central-overview-card.js` as a **JavaScript module**.
-3. Reload Home Assistant and add **MYHS Central Card** to your dashboard.
+1. Die Datei `dist/central-overview-card.js` nach `/config/www/central-overview-card.js` kopieren.
+2. Unter **Einstellungen → Dashboards → Ressourcen** die URL `/local/central-overview-card.js` als **JavaScript-Modul** hinzufügen.
+3. Home Assistant neu laden und die **MYHS Central Card** zum Dashboard hinzufügen.
 
-## Visual editor
+## Visueller Editor
 
-Configure your card directly in Home Assistant—no YAML required.
+Die gesamte Konfiguration erfolgt direkt über den Karteneditor in Home Assistant. **YAML ist nicht erforderlich.**
 
-![MYHS Central Card visual editor](images/editor.png)
+![Visueller Editor der MYHS Central Card](images/editor.png)
 
-From **Edit dashboard → Edit card**, you can:
+Unter **Dashboard bearbeiten → Karte bearbeiten** lassen sich:
 
-- Add, remove, hide, and reorder tiles.
-- Select a tile type and its data source.
-- Choose entities, areas, or groups/helpers.
-- Change the label, native `mdi:` icon, accent color, and navigation target.
-- Set the number of columns (1–4), spacing, and label visibility.
+- Kacheln hinzufügen, entfernen, ein- oder ausblenden und umsortieren;
+- Kacheltyp und Datenquelle auswählen;
+- einzelne Entitäten, Bereiche sowie Gruppen und Helfer zuordnen;
+- Namen, `mdi:`-Symbole, Statusfarben und Navigationsziele ändern;
+- Spaltenzahl (1–4), Kachelabstände und Untertitel anpassen.
 
-## Available tiles
+## Die 16 Kacheltypen
 
-| Tile | Status displayed | Default data source |
+| Kachel | Anzeige | Automatische Datenquelle |
 | --- | --- | --- |
-| Security | Alarm panel state | `alarm_control_panel` |
-| Windows | Open windows | Window/opening binary sensors |
-| Lights | Active lights or rooms | `light` |
-| Energy | Active plugs and outlets | Outlet/plug switches |
-| Heating | Heating and auto modes | Heating `climate` entities |
-| Climate | Cooling, heating, and ventilation | Cooling-capable `climate` entities |
-| Audio | Playing and paused speakers | Speaker/receiver media players |
-| Shading | Open, closed, and partial covers | `cover` |
-| Media | Active TVs | TV media players |
-| Air quality | Sensor states or threshold alerts | User-selected sensors |
-| Access | Lock status | `lock` |
-| Alarms / Timers | Active alarm switches | User-selected entities |
-| Motion | Detected motion/presence | Motion/presence binary sensors |
-| People | People at home | `person` |
-| Vehicles | Vehicles in a configured state | User-selected entities |
-| Automations | Enabled automations | `automation` |
+| Sicherheit | Zustand der Alarmanlage | `alarm_control_panel` |
+| Fenster | Anzahl geöffneter Fenster | `binary_sensor` mit Fenster-/Öffnungsklasse |
+| Licht | Eingeschaltete Leuchten oder aktive Räume | `light` |
+| Energie | Aktive Steckdosen und Geräte | `switch` mit Steckdosen-Geräteklasse |
+| Heizung | Heizen und Automatikbetrieb | Heizungsbezogene `climate`-Entitäten |
+| Klima | Kühlen, Heizen und Lüften | Kühlfähige `climate`-Entitäten |
+| Audio | Wiedergabe und Pause | `media_player` für Lautsprecher/Receiver |
+| Beschattung | Offen, geschlossen oder teilweise geöffnet | `cover` |
+| Medien | Aktive Fernseher | `media_player` für Fernseher |
+| Raumluft | Sensorwerte oder Grenzwert-Hinweise | Frei wählbare Sensoren |
+| Zutritt | Türschlossstatus | `lock` |
+| Wecker | Anzahl aktiver Wecker | Frei wählbare Entitäten |
+| Präsenz | Erkannte Bewegung oder Präsenz | Passende `binary_sensor`-Geräteklassen |
+| Anwesenheit | Anwesende Personen | `person` |
+| Fahrzeuge | Fahrzeuge in einem festgelegten Zustand | Frei wählbare Entitäten |
+| Automationen | Aktivierte Automationen | `automation` |
 
-**Automatic discovery** uses Home Assistant domains and device classes—not device names or personal entity IDs. If a device lacks the required device class, select it manually. Air quality, alarm-clock, and vehicle tiles require a user-selected source by default.
+**Zur Erkennung:** Die Karte orientiert sich an Home-Assistant-Domänen und Geräteklassen. Geräte ohne passende Zuordnung können im visuellen Editor manuell ausgewählt werden. Für die Kacheln Raumluft, Wecker und Fahrzeuge wird standardmäßig eine passende Datenquelle vom Nutzer festgelegt.
 
-## Configuration
+## Konfiguration mit YAML (optional)
 
-The visual editor is the recommended way to get started. Advanced users can also configure the card in YAML:
+Für fortgeschrittene Nutzer ist auch eine manuelle Konfiguration möglich:
 
 ```yaml
 type: custom:central-overview-card
@@ -83,52 +83,52 @@ columns: 2
 gap: 8
 tiles:
   - kind: windows
-    label: Windows
+    label: Fenster
     source: auto
     tone: error
-    navigation_path: '#windows'
+    navigation_path: '#fenster'
   - kind: lights
-    label: Lights
+    label: Licht
     source: auto
     tone: warning
   - kind: people
-    label: Presence
+    label: Anwesenheit
     source: auto
     tone: pink
 ```
 
-Without a custom `tiles` list, the card starts with all 16 tile types. Available data-source modes are `auto` (discover matching entities), `selected` (choose entities), and `group` (use a group or helper). Optional settings include area filtering, state thresholds, and custom navigation targets.
+Ohne eigene `tiles`-Liste werden alle 16 Kacheltypen als Ausgangspunkt angeboten. Für Datenquellen stehen `auto` (automatisch erkennen), `selected` (Entitäten auswählen) und `group` (Gruppe oder Helfer) zur Verfügung. Weitere Optionen betreffen unter anderem Bereichsfilter, Grenzwerte und Navigation.
 
-The technical card type remains **`custom:central-overview-card`** for compatibility with existing dashboards.
+Der technische Kartentyp lautet weiterhin `custom:central-overview-card`, damit vorhandene Dashboard-Konfigurationen kompatibel bleiben.
 
-## Design and compatibility
+## Design und Kompatibilität
 
-- Uses a **135° gradient** with Home Assistant theme colors, fading from the upper-left corner.
-- Supports light and dark themes without custom `--custom_*` color variables.
-- Uses built-in Material Design Icons (`mdi:`); no third-party icon library is needed.
-- Works with user-provided entities and groups—no hard-coded installation-specific IDs.
+- Farbverlauf im **135°-Winkel**, beginnend oben links und sanft auslaufend.
+- Verwendung von **Home-Assistant-Standardfarben** und Unterstützung für helle und dunkle Themes.
+- Ausschließlich integrierte **Material Design Icons (`mdi:`)**; zusätzliche Symbolpakete sind nicht erforderlich.
+- Keine fest hinterlegten persönlichen Entitäts-IDs.
 
-**Security note:** Home Assistant's `armed_home` state means the alarm is *armed while home*. The optional `alarm_home_legacy` setting changes its display for compatibility with older configurations and is disabled by default.
+**Hinweis zur Sicherheit:** Der Home-Assistant-Zustand `armed_home` bedeutet „zu Hause scharf“. Die optionale Einstellung `alarm_home_legacy` ist ausschließlich für die Kompatibilität mit früheren Darstellungen vorgesehen und standardmäßig deaktiviert.
 
-## Updates and troubleshooting
+## Aktualisierung und Fehlerbehebung
 
-**Seeing an old design?** Update the card through HACS and fully reload Home Assistant. For manual installations, changing the resource URL to `/local/central-overview-card.js?v=112` can bypass a cached JavaScript file.
+**Änderungen werden nicht angezeigt?** Die Karte in HACS aktualisieren und Home Assistant vollständig neu laden. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=112` helfen, eine zwischengespeicherte Datei zu umgehen.
 
-**Seeing a commit hash instead of `1.1.2` in HACS?** Publish a regular GitHub release tagged `v1.1.2`. The version shown by HACS is determined by GitHub releases, while the label inside the visual editor comes from the card's JavaScript. If your repository already has a higher version tag, plan your release sequence accordingly.
+**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein reguläres Release mit dem Tag `v1.1.2` veröffentlichen. Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
 
-**Missing devices?** Check their domain and device class, or select the entities manually in the visual editor.
+**Geräte fehlen in der Übersicht?** Geräteklasse und Entitätsdomäne prüfen oder die Entitäten im visuellen Editor gezielt auswählen.
 
-## Development
+## Entwicklung und Tests
 
 ```bash
 node --check dist/central-overview-card.js
 node tests/smoke.cjs
-# Optional browser test (requires Playwright and Chromium)
+# Optional: Browsertest mit Playwright und Chromium
 python tests/browser_smoke.py
 ```
 
-Syntax, status calculations, and visual-editor interactions have been tested locally. The preview images use sample data. Testing on a production Home Assistant installation and full public HACS publication has not yet been completed.
+JavaScript-Syntax, Statusberechnungen und Interaktionen des visuellen Editors wurden lokal geprüft. Die Vorschaubilder verwenden Beispieldaten. Ein vollständiger Praxistest in einer produktiven Home-Assistant-Installation und die öffentliche HACS-Veröffentlichung stehen noch aus.
 
-## License
+## Lizenz
 
-Licensed under the [MIT License](LICENSE).
+Veröffentlicht unter der [MIT-Lizenz](LICENSE).
