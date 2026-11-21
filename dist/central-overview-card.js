@@ -1,4 +1,4 @@
-/* Central Overview Card v1.4.3 | MIT | Home Assistant Lovelace | no dependencies */
+/* MYHS Central Card | Version 1.1.2 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -237,18 +237,20 @@
     ha-card {background:transparent; border:0; box-shadow:none; padding:0; overflow:visible;}
     .grid {display:grid; grid-template-columns:repeat(var(--co-columns, 2),minmax(0,1fr));
       gap:var(--co-gap,8px);}
-    button.tile {box-sizing:border-box; appearance:none; font:inherit;
+    button.tile {box-sizing:border-box; appearance:none; -webkit-appearance:none; font:inherit;
       font-family:var(--primary-font-family,inherit); text-align:left;
       display:grid; grid-template-rows:30px minmax(26px,auto) 18px;
       align-content:center; justify-items:start; row-gap:1px;
       padding:10px 11px; min-width:0; width:100%; min-height:102px;
-      /* Keine farbigen Linien rechts/unten: weder Themen-Rahmen noch Schatten. */
-      border:0;
+      /* Kein sichtbarer Rahmen, keine Akzent-Linien an den Rändern. */
+      border:0 !important;
       overflow:hidden;
+      position:relative; isolation:isolate;
+      background-clip:padding-box;
       border-radius:var(--ha-card-border-radius,12px);
       color:var(--primary-text-color);
       background:var(--ha-card-background,var(--card-background-color,#fff));
-      box-shadow:none;
+      box-shadow:none !important;
       cursor:default;
       transition:box-shadow .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
     }
@@ -257,13 +259,26 @@
       box-shadow:none;}
     button.tile.clickable:active {transform:translateY(0);}
     button.tile:focus-visible {outline:2px solid var(--primary-color); outline-offset:2px;}
-    /* Original v1.2 gradient, exactly: 135deg, 32% through 14%, transparent by 68%. */
-    button.tile.colored {background:
-      linear-gradient(135deg,
+    /* Original gradient on an independent layer, not on the button border.
+       The overlay fades smoothly to 0 near the right/bottom edge (iOS Safari).
+       Intersect both masks: neither side can produce a colored hairline. */
+    button.tile.colored::before {
+      content:''; position:absolute; inset:0; z-index:0;
+      border-radius:inherit; pointer-events:none;
+      background:linear-gradient(135deg,
         color-mix(in srgb,var(--tile-color) 32%, transparent) 0%,
         color-mix(in srgb,var(--tile-color) 32%, transparent) 14%,
-        transparent 68%),
-      var(--ha-card-background,var(--card-background-color,#fff));}
+        transparent 68%);
+      -webkit-mask-image:
+        linear-gradient(to right,#000 0%,#000 calc(100% - 12px),transparent 100%),
+        linear-gradient(to bottom,#000 0%,#000 calc(100% - 12px),transparent 100%);
+      mask-image:
+        linear-gradient(to right,#000 0%,#000 calc(100% - 12px),transparent 100%),
+        linear-gradient(to bottom,#000 0%,#000 calc(100% - 12px),transparent 100%);
+      -webkit-mask-composite:source-in;
+      mask-composite:intersect;
+    }
+    button.tile > * {position:relative; z-index:1;}
     .icon {box-sizing:border-box; height:30px; width:30px; display:flex;
       align-items:center; justify-content:flex-start;
       color:var(--tile-fg,var(--secondary-text-color));}
@@ -304,7 +319,7 @@
     _update() {
       if (!this._config) return;
       if (!this._rendered) {
-        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card><div class="grid"></div></ha-card>`;
+        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.2"><div class="grid"></div></ha-card>`;
         this.shadowRoot.querySelector('.grid').addEventListener('click',(ev)=>{
           const btn=ev.target.closest('button.tile');
           if (!btn) return;
@@ -460,7 +475,7 @@
           </div></details>`;
       }).join('');
       this.shadowRoot.innerHTML=`<style>${EDIT_CSS}</style><div class="panel">
-        <div class="global"><h3>Zentralübersicht</h3><p class="help">Universelle Kacheln: Auto-Erkennung über Home-Assistant-Domänen und Geräteklassen, eigene Entitäten oder Gruppen. Keine festen Benutzer-IDs.</p>
+        <div class="global"><h3>MYHS Central Card</h3><p class="help">Universelle Kacheln: Auto-Erkennung über Home-Assistant-Domänen und Geräteklassen, eigene Entitäten oder Gruppen. Keine festen Benutzer-IDs.</p>
           <div class="fields"><label>Spalten<select data-global="columns">${[1,2,3,4].map(v=>option(String(v),String(v),String(cfg.columns||2))).join('')}</select></label>
           <label>Abstand (Pixel)<input type="number" min="0" max="40" data-global="gap" value="${esc(cfg.gap??8)}"></label>
           <label class="check wide"><input type="checkbox" data-global="show_labels" ${cfg.show_labels!==false?'checked':''}>Untertitel anzeigen</label>
@@ -469,7 +484,7 @@
         <h3>Kacheln (${cfg.tiles.length})</h3>${tileHtml}
         <div class="footer"><select id="new-kind">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
           <button type="button" class="primary" id="add-tile">+ Kachel</button></div>
-        <p class="help">Für Fahrzeuge, Wecker und Raumluft ist eine Datenquelle notwendig. Audio und Fernseher werden automatisch nur erkannt, wenn die Geräteklasse zugeordnet ist.</p>
+        <p class="help">Für Fahrzeuge, Wecker und Raumluft ist eine Datenquelle notwendig. Audio und Fernseher werden automatisch nur erkannt, wenn die Geräteklasse zugeordnet ist. · Version 1.1.2</p>
       </div>`;
       this.shadowRoot.querySelectorAll('ha-icon-picker').forEach(el=>{
         el.value=el.getAttribute('value') || '';
@@ -534,7 +549,7 @@
   customElements.define(EDITOR_TAG,CentralOverviewEditor);
   window.customCards=window.customCards||[];
   if (!window.customCards.some(c=>c.type===TAG)) {
-    window.customCards.push({type:TAG,name:'Zentralübersicht (universell)',
+    window.customCards.push({type:TAG,name:'MYHS Central Card',
       description:'16 konfigurierbare Status-Kacheln für Sicherheit, Fenster, Licht, Klima und mehr.',preview:true});
   }
 })();

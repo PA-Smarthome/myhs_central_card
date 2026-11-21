@@ -7,6 +7,9 @@ assert(!src.includes('--custom_'), 'Must not depend on custom theme variables');
 assert(!src.includes('edelmann'), 'Must not include original installation-specific entities');
 assert(!src.includes('local:'), 'Must not depend on third-party or local icon collections');
 assert(src.includes('ha-icon-picker'), 'Must provide native Home Assistant icon picker');
+assert(src.includes('Version 1.1.2'), 'Editor must display Version 1.1.2');
+assert(src.includes('data-card-version=\"1.1.2\"'), 'Card version must match');
+
 const testSrc = src.replace(/\}\)\(\);\s*$/, 'window.__test = { compute, createConfig, resolveEntities, KINDS };})();');
 const registry = new Map();
 const windowStub = { customCards: [] };
@@ -17,6 +20,7 @@ vm.runInNewContext(testSrc, {
   CustomEvent:class{},
 }, {filename:'central-overview-card.js'});
 const {compute, createConfig, KINDS}=windowStub.__test;
+assert.equal(windowStub.customCards[0].name, 'MYHS Central Card');
 assert.equal(Object.keys(KINDS).length,16);
 const cfg=createConfig();
 assert.equal(cfg.tiles.length,16);

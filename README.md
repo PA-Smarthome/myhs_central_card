@@ -1,13 +1,13 @@
-# Central Overview Card – universelle Home-Assistant-Zentralübersicht
+# MYHS Central Card – universelle Home-Assistant-Zentralübersicht
 
 Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln** und **vollständigem visuellem Editor**. Die Karte ist für jede Home-Assistant-Installation gedacht. Sie enthält **keine festen Benutzer- oder Entitäts-IDs** und benötigt **keine `button-card`**.
 
 ![Vorschau mit frei erfundenen Beispieldaten](images/preview.png)
 
-### Design in v1.4.3 – ursprünglicher Farbverlauf, angenehme Höhe
+### Design – Version 1.1.2
 
-- Der **ursprüngliche Farbverlauf** ist zurück (135°; HA-Theme-Farbe bei 32 % von 0–14 %, auslaufend bis 68 %), identisch zur v1.2-Darstellung.
-- Kachel-Mindesthöhe jetzt **102 px** statt 86 px (v1.3) oder 111 px (v1.2) – ein ausgewogener Mittelweg.
+- Der **ursprüngliche Farbverlauf** ist zurück (135°; HA-Theme-Farbe bei 32 % von 0–14 %, auslaufend bis 68 %), entsprechend der ursprünglichen Vorlage.
+- Kachel-Mindesthöhe jetzt **102 px** mit gut lesbarer, kompakter Darstellung – ein ausgewogener Mittelweg.
 - Icon 25 px, Status 16 px und Untertitel 13 px: wieder besser lesbar.
 - Alle **16 Kacheln**, der unveränderte **visuelle Editor** sowie HA-Standardfarben und `mdi:`-Icons bleiben erhalten.
 - Bisherige Konfigurationen bleiben kompatibel; keine neuen Pflichtfelder.
@@ -18,7 +18,7 @@ Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln
 ![Visueller Editor (Demonstrationsansicht)](images/editor.png)
 
 1. Dashboard öffnen → **Dashboard bearbeiten**.
-2. **Karte hinzufügen** → **Zentralübersicht (universell)** auswählen.
+2. **Karte hinzufügen** → **MYHS Central Card** auswählen.
 3. Für eine bestehende Karte **Karte bearbeiten** öffnen.
 4. Im **visuellen Menü** die gewünschte Kachel aufklappen. Dort kann man:
    - Kacheltyp wählen, Kacheln **hinzufügen / entfernen / ein- und ausblenden / umsortieren**.
@@ -80,7 +80,7 @@ LICENSE
 
 Über **Add file → Upload files → Commit changes** kannst du Dateien hochladen. GitHub lädt versteckte `.github`-Ordner über Drag-and-drop je nach Browser unterschiedlich zuverlässig hoch; kontrolliere, dass `.github/workflows/validate.yml` vorhanden ist. Alternativ lege sie in GitHub per **Add file → Create new file** mit dem Pfad `.github/workflows/validate.yml` an.
 
-Erstelle danach optional unter **Releases → Draft a new release** ein Release, z. B. `v1.4.3`. Dieses ist für die öffentliche Verteilung und Updates sinnvoll. Anschließend das Repository in HACS/Marketplace als benutzerdefiniertes Repository vom Typ **Dashboard** hinzufügen.
+Erstelle danach optional unter **Releases → Draft a new release** ein Release, z. B. `v1.1.2`. Dieses ist für die öffentliche Verteilung und Updates sinnvoll. Anschließend das Repository in HACS/Marketplace als benutzerdefiniertes Repository vom Typ **Dashboard** hinzufügen.
 
 ## Installation
 
@@ -158,3 +158,9 @@ Die Beispielbilder wurden in einem lokalen Browser aus dieser Karte mit **synthe
 ## Lizenz
 
 MIT, siehe `LICENSE`.
+
+### iPhone / iOS: alte Version aus dem Cache entfernen
+
+Falls weiterhin farbige Ränder sichtbar sind, läuft möglicherweise noch die alte Version. Öffne den visuellen Karteneditor und kontrolliere die Kennzeichnung **Version 1.1.2** im unteren Hinweistext. Fehlt sie, hat Home Assistant die Datei noch nicht aktualisiert. Nach GitHub-Release die Karte auch **in HACS aktualisieren** und die Home-Assistant-App ganz schließen und neu öffnen. Bei manueller Installation `/local/central-overview-card.js?v=112` als Ressourcen-URL verwenden. Beim Wechsel der Ressource anschließend die App vollständig neu laden.
+
+**Versionshinweis:** Der sichtbare Kartenname lautet **MYHS Central Card**, die Anzeige im Editor **Version 1.1.2**. Der technische Kartentyp `custom:central-overview-card` und die Dateinamen bleiben unverändert, damit bestehende Dashboards kompatibel bleiben. Liegen auf GitHub bereits Releases mit höheren Versionsnummern (zum Beispiel `v1.4.4`), erkennt HACS `v1.1.2` möglicherweise nicht als neues Update. Bei einer solchen Installation die Version bewusst manuell aktualisieren oder die Release-Strategie anpassen.
