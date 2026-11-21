@@ -19,7 +19,7 @@ with sync_playwright() as p:
     page.wait_for_function('window.card && window.editor && editor.shadowRoot.querySelectorAll("details.tile-item").length === 16')
     assert page.evaluate('card.shadowRoot.querySelectorAll("button.tile").length') == 16
     assert page.evaluate('editor.shadowRoot.querySelectorAll("ha-icon-picker").length') == 16
-    assert page.evaluate('editor.shadowRoot.textContent.includes("Version 1.1.5")')
+    assert page.evaluate('editor.shadowRoot.textContent.includes("Version 1.1.6")')
 
     (root / 'images').mkdir(exist_ok=True)
     page.locator('#dashboard').screenshot(path=str(root / 'images/preview.png'))

@@ -1,4 +1,4 @@
-/* MYHS Central Card | Version 1.1.5 | MIT | Home Assistant Lovelace | no dependencies */
+/* MYHS Central Card | Version 1.1.6 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -50,10 +50,13 @@
     alarm_home_legacy:false, tiles:Object.keys(KINDS).map(createTile)});
   const strings = (value) => Array.isArray(value) ? value.filter(v => typeof v === 'string') : [];
   const uniq = (items) => [...new Set(items.filter(Boolean))];
-  // Built-in Home Assistant Material Design icons only: never require local icon packs.
+  // Accept all native mdi: icons and any optional, installed icon collection
+  // Installed icon prefixes are managed by Home Assistant.
+  // Existing mdi: defaults always work without additional icon packages.
+  const isIconName = value => typeof value === 'string' &&
+    /^[a-z][a-z0-9_-]*:[a-z0-9][a-z0-9._-]*$/i.test(value);
   const mdiIcon = (candidate, kind) =>
-    (typeof candidate === 'string' && /^mdi:[a-z0-9][a-z0-9-]*$/i.test(candidate))
-      ? candidate : (KINDS[kind]?.icon || 'mdi:help-circle');
+    isIconName(candidate) ? candidate : (KINDS[kind]?.icon || 'mdi:help-circle');
   const hasState = (entity) => Boolean(entity && typeof entity.state === 'string' &&
     entity.state.trim() !== '' && !['unknown','unavailable'].includes(entity.state));
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (x) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -330,7 +333,7 @@
     _update() {
       if (!this._config) return;
       if (!this._rendered) {
-        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.5"><div class="grid"></div></ha-card>`;
+        this.shadowRoot.innerHTML=`<style>${CARD_CSS}</style><ha-card data-card-version="1.1.6"><div class="grid"></div></ha-card>`;
         this.shadowRoot.querySelector('.grid').addEventListener('click',(ev)=>{
           const btn=ev.target.closest('button.tile');
           if (!btn) return;
@@ -420,8 +423,13 @@
     .check {display:flex;align-items:center;gap:9px;font-size:13px;color:var(--primary-text-color);cursor:pointer;}
     .check.wide {grid-column:1 / -1;}
     .check-subtext {font-size:11px;color:var(--secondary-text-color);margin:4px 0 0 27px;}
-    ha-entity-picker,ha-icon-picker {display:block;width:100%;min-height:40px;}
-    ha-icon-picker:not(:defined) {display:none;}
+    ha-entity-picker,ha-selector.icon-selector {display:block;width:100%;min-height:40px;}
+    /* Home Assistant's official icon selector loads the complete MDI icon
+       index and any installed icon collections. Fall back to the direct picker
+       on older frontends and to the text field if neither has been loaded. */
+    ha-selector.icon-selector:not(:defined) {display:none;}
+    ha-icon-picker.icon-picker-fallback {display:none;width:100%;min-height:40px;}
+    ha-selector.icon-selector:not(:defined) + ha-icon-picker.icon-picker-fallback:defined {display:block;}
     .tiles-title {display:flex;justify-content:space-between;align-items:center;gap:10px;}
     .tiles-title h3 {margin:0;font-size:15px;}
     .tiles-title p {margin:3px 0 0;color:var(--secondary-text-color);font-size:12px;}
@@ -534,7 +542,7 @@
       const first=!this._hass;
       this._hass=hass;
       if(first && this._config) this._render();
-      else this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(el=>{el.hass=hass;});
+      else this.shadowRoot.querySelectorAll('ha-entity-picker, ha-selector[data-field="icon"]').forEach(el=>{el.hass=hass;});
     }
     get hass(){return this._hass;}
     _commit(mutator,{resetFilter=false,openIndex=undefined}={}){
@@ -573,7 +581,7 @@
       const old=this._config?.tiles?.[i];if(!old)return;
       if(field==='icon'){
         value=String(value??'').trim().toLowerCase();
-        if(!/^mdi:[a-z0-9][a-z0-9-]*$/.test(value))return;
+        if(!isIconName(value))return;
       }
       const structural=['kind','source'].includes(field);
       this._commit(cfg=>{
@@ -667,7 +675,7 @@
     }
     _change(e){
       const el=e.target;
-      if(!this._config||['ha-icon-picker','ha-entity-picker'].includes(el.localName))return;
+      if(!this._config||['ha-icon-picker','ha-entity-picker','ha-selector'].includes(el.localName))return;
       if(el.id==='tile-filter'){
         this._visibilityFilter=el.value;this._applyFilter();return;
       }
@@ -688,7 +696,7 @@
     _pickerChanged(e){
       const el=e.target;
       if(this._syncingPickers||!this._config||
-          !['ha-icon-picker','ha-entity-picker'].includes(el.localName))return;
+          !['ha-icon-picker','ha-entity-picker','ha-selector'].includes(el.localName))return;
       e.stopPropagation();
       const row=el.closest('details.tile-item');if(!row)return;
       const value=e.detail?.value||'';
@@ -778,13 +786,16 @@
                 <label class="control">Kacheltyp<select data-field="kind">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,tile.kind)).join('')}</select></label>
                 <label class="control">Untertitel<input data-field="label" value="${esc(displayName)}" placeholder="${esc(k.label)}"></label>
                 <div class="control wide"><span>Symbol</span>
-                  <ha-icon-picker data-field="icon" label="Home-Assistant-Symbol" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon-picker>
+                  <ha-selector class="icon-selector" data-field="icon"
+                    label="Alle verfügbaren Symbole durchsuchen" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-selector>
+                  <ha-icon-picker class="icon-picker-fallback" data-field="icon"
+                    label="Alle verfügbaren Symbole durchsuchen" value="${esc(mdiIcon(tile.icon,tile.kind))}"></ha-icon-picker>
                   <div class="input-with-preview">
                     <input data-field="icon" value="${esc(mdiIcon(tile.icon,tile.kind))}"
-                      aria-label="Eigenes Home-Assistant-Symbol" placeholder="mdi:home" spellcheck="false">
+                      aria-label="Icon-Name manuell eingeben" placeholder="mdi:home" spellcheck="false">
                     <ha-icon icon="${esc(mdiIcon(tile.icon,tile.kind))}" class="icon-preview"></ha-icon>
                   </div>
-                  <p class="icon-help">Symbol direkt im Menü auswählen oder eine eigene mdi:-Bezeichnung eingeben (z. B. mdi:shield-check).</p>
+                  <p class="icon-help">Die Suche bietet alle in Home Assistant verfügbaren MDI-Symbole und installierte Icon-Sammlungen. Alternativ einen vollständigen Namen eingeben, z. B. mdi:shield-check.</p>
                 </div>
                 <label class="control wide">Aktive Farbe<select data-field="tone">${['alarm','lock'].includes(tile.kind)?option('auto','Automatisch nach Zustand',tile.tone||'auto'):''}${Object.entries(COLOR_LABELS).map(([v,d])=>option(v,d,tile.tone||k.tone)).join('')}</select></label>
               </div>
@@ -826,7 +837,7 @@
         <header class="intro">
           <div class="brand-icon"><ha-icon icon="mdi:view-dashboard-outline"></ha-icon></div>
           <div class="intro-copy"><h3>MYHS Central Card</h3><p>Deine zentrale Smart-Home-Übersicht</p></div>
-          <span class="version">Version 1.1.5</span>
+          <span class="version">Version 1.1.6</span>
         </header>
         <details class="settings" ${this._settingsOpen?'open':''}>
           <summary><span class="settings-icon"><ha-icon icon="mdi:tune-variant"></ha-icon></span>
@@ -858,13 +869,17 @@
           <div class="add-controls"><select id="new-kind" aria-label="Neuen Kacheltyp wählen">${Object.entries(KINDS).map(([v,d])=>option(v,d.label,'')).join('')}</select>
             <button type="button" class="primary" id="add-tile">+ Hinzufügen</button></div></div>
         <p class="footer-note" id="filter-count"></p>
-        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.5</p>
+        <p class="footer-note">Tipp: Für Wecker, Fahrzeuge und Raumluft eigene Entitäten auswählen. · Version 1.1.6</p>
       </div>`;
       const search=this.shadowRoot.querySelector('#tile-search');
       if(search)search.value=this._searchQuery;
       this._syncingPickers=true;
-      for(const picker of this.shadowRoot.querySelectorAll('ha-icon-picker, ha-entity-picker')){
-        if(picker.localName==='ha-entity-picker' && this._hass)picker.hass=this._hass;
+      for(const picker of this.shadowRoot.querySelectorAll('ha-selector[data-field="icon"], ha-icon-picker, ha-entity-picker')){
+        if(this._hass && ['ha-entity-picker','ha-selector'].includes(picker.localName))picker.hass=this._hass;
+        if(picker.localName==='ha-selector'){
+          picker.selector={icon:{}};
+          picker.required=false;
+        }
         if(picker.dataset.field!=='new-entity')picker.value=picker.getAttribute('value')||'';
         // Some Home Assistant picker versions dispatch non-bubbling events.
         // Bind directly as well so the selection is never lost.

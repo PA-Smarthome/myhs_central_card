@@ -4,7 +4,7 @@
 
 Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYHS Central Card** bündelt wichtige Informationen zum Smart Home in **16 intelligenten Status-Kacheln** – übersichtlich gestaltet, mit dynamischen Farbverläufen und einem vollständig integrierten **visuellen Editor**.
 
-**Version 1.1.5** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
+**Version 1.1.6** · **16 Kacheltypen** · **Visueller Editor** · **Home-Assistant-Icons**
 
 ![Vorschau der MYHS Central Card](images/preview.png)
 
@@ -15,7 +15,7 @@ Eine moderne, individuell anpassbare Übersichtskarte für Home Assistant. **MYH
 - **Alles auf einen Blick:** Statusinformationen zu Sicherheit, Fenstern, Licht, Klima, Medien, Anwesenheit und weiteren Bereichen.
 - **Einfach anpassbar:** Kacheln direkt im Home-Assistant-Menü suchen, hinzufügen, duplizieren, ausblenden, entfernen und neu anordnen.
 - **Flexible Datenquellen:** Automatische Erkennung, frei gewählte Entitäten oder Gruppen und Helfer.
-- **Passendes Design:** Home-Assistant-Theme-Farben, integrierte Material Design Icons (`mdi:`) und Unterstützung für helle und dunkle Themes.
+- **Passendes Design:** Home-Assistant-Theme-Farben, vollständige Home-Assistant-Symbolauswahl (`mdi:`) und Unterstützung für helle und dunkle Themes.
 - **Individuelles Layout:** Ein bis vier Spalten, einstellbare Abstände, Beschriftungen und Navigationsziele.
 - **Status und Navigation:** Die Kacheln zeigen Informationen an und können auf Dashboard-Ansichten verlinken. Geräte werden nicht direkt geschaltet.
 
@@ -51,8 +51,14 @@ Unter **Dashboard bearbeiten → Karte bearbeiten** lassen sich:
 - Kacheln schnell suchen, nach Sichtbarkeit filtern, hinzufügen, duplizieren, entfernen, ein- oder ausblenden und umsortieren;
 - Kacheltyp und Datenquelle auswählen;
 - einzelne Entitäten, Bereiche sowie Gruppen und Helfer zuordnen;
-- Namen, `mdi:`-Symbole, Statusfarben und Navigationsziele in getrennten Einstellungsabschnitten ändern;
+- Namen, alle in Home Assistant verfügbaren Symbole, Statusfarben und Navigationsziele in getrennten Einstellungsabschnitten ändern;
 - Spaltenzahl (1–4), Kachelabstände und Untertitel anpassen.
+
+### Symbolauswahl
+
+Unter **Allgemein → Symbol** steht die native, durchsuchbare Symbolauswahl von Home Assistant zur Verfügung. Sie zeigt die vorhandenen **Material Design Icons (`mdi:`)** und – sofern in Home Assistant installiert und registriert – weitere Icon-Sammlungen. Es gibt **keine fest vorgegebene, gekürzte Liste** in der MYHS Central Card.
+
+Das gewählte Symbol wird direkt in der Kachel übernommen. Alternativ kann der vollständige Icon-Name eingegeben werden. Falls der native Picker in der installierten Home-Assistant-Frontend-Version nicht verfügbar ist, bleibt die manuelle Eingabe nutzbar.
 
 ## Die 16 Kacheltypen
 
@@ -109,16 +115,16 @@ Der technische Kartentyp lautet weiterhin `custom:central-overview-card`, damit 
 
 - Farbverlauf im **135°-Winkel**, beginnend oben links und sanft auslaufend.
 - Verwendung von **Home-Assistant-Standardfarben** und Unterstützung für helle und dunkle Themes.
-- Ausschließlich integrierte **Material Design Icons (`mdi:`)**; zusätzliche Symbolpakete sind nicht erforderlich.
+- **Vollständige Home-Assistant-Symbolauswahl** mit Suche: alle integrierten `mdi:`-Icons sowie optional installierte und von Home Assistant registrierte Icon-Sammlungen. Zusätzliche Pakete sind nicht erforderlich.
 - Keine fest hinterlegten persönlichen Entitäts-IDs.
 
 **Hinweis zur Sicherheit:** Der Home-Assistant-Zustand `armed_home` bedeutet „zu Hause scharf“. Die optionale Einstellung `alarm_home_legacy` ist ausschließlich für die Kompatibilität mit früheren Darstellungen vorgesehen und standardmäßig deaktiviert.
 
 ## Aktualisierung und Fehlerbehebung
 
-**Änderungen werden nicht angezeigt?** In HACS / Marketplace bei der Karte zunächst **Update information** und danach **Redownload / Aktualisieren** wählen; anschließend die Home-Assistant-App vollständig neu starten. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=112` helfen, eine zwischengespeicherte Datei zu umgehen.
+**Änderungen werden nicht angezeigt?** In HACS / Marketplace bei der Karte zunächst **Update information** und danach **Redownload / Aktualisieren** wählen; anschließend die Home-Assistant-App vollständig neu starten. Bei einer manuellen Installation kann die Ressourcen-URL `/local/central-overview-card.js?v=116` helfen, eine zwischengespeicherte Datei zu umgehen.
 
-**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein **veröffentlichtes reguläres Release** mit dem Tag `v1.1.5` anlegen (ein Tag allein genügt nicht). Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
+**In HACS erscheint eine Commit-Kennung statt der Versionsnummer?** Auf GitHub ein **veröffentlichtes reguläres Release** mit dem Tag `v1.1.6` anlegen (ein Tag allein genügt nicht). Die Versionsanzeige in HACS basiert auf den GitHub-Releases; die Versionsangabe im Karteneditor wird von der JavaScript-Datei bereitgestellt. Bereits vorhandene höhere Release-Versionen müssen bei der Versionsplanung berücksichtigt werden.
 
 **Geräte fehlen in der Übersicht?** Geräteklasse und Entitätsdomäne prüfen oder die Entitäten im visuellen Editor gezielt auswählen.
 
