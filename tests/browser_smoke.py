@@ -16,6 +16,13 @@ with sync_playwright() as p:
     (root/'images').mkdir(exist_ok=True)
     page.locator('#dashboard').screenshot(path=str(root/'images/preview.png'))
     page.locator('#visual-editor').screenshot(path=str(root/'images/editor.png'))
+    # The icon is chosen via Home Assistant's native icon picker and persisted to the config.
+    assert page.evaluate('window.editor.shadowRoot.querySelectorAll("ha-icon-picker").length')==16
+    page.locator('central-overview-card-editor').evaluate('el=>{const d=el.shadowRoot.querySelectorAll("details")[0];const picker=d.querySelector("ha-icon-picker");picker.value="mdi:shield-check";picker.dispatchEvent(new CustomEvent("value-changed",{detail:{value:"mdi:shield-check"}}));}')
+    assert page.evaluate('window.changes.at(-1).tiles[0].icon')=='mdi:shield-check'
+    # A third-party icon is rejected to retain dependency-free MDI behaviour.
+    page.locator('central-overview-card-editor').evaluate('el=>{const d=el.shadowRoot.querySelectorAll("details")[0];const picker=d.querySelector("ha-icon-picker");picker.value="local:external";picker.dispatchEvent(new CustomEvent("value-changed",{detail:{value:"local:external"}}));}')
+    assert page.evaluate('window.changes.at(-1).tiles[0].icon')=='mdi:shield-home'
     # Visual editor: modify the number of columns, emit a complete config.
     page.locator('central-overview-card-editor').evaluate('el=>{const f=el.shadowRoot.querySelector("[data-global=columns]");f.value="3";f.dispatchEvent(new Event("change",{bubbles:true}));}')
     assert page.evaluate('window.changes.at(-1).columns')==3

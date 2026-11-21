@@ -1,4 +1,4 @@
-/* Central Overview Card v1.3.0 | MIT | Home Assistant Lovelace | no dependencies */
+/* Central Overview Card v1.4.0 | MIT | Home Assistant Lovelace | no dependencies */
 (() => {
   'use strict';
   const TAG = 'central-overview-card';
@@ -239,9 +239,9 @@
       gap:var(--co-gap,8px);}
     button.tile {box-sizing:border-box; appearance:none; font:inherit;
       font-family:var(--primary-font-family,inherit); text-align:left;
-      display:grid; grid-template-rows:25px minmax(21px,auto) 16px;
+      display:grid; grid-template-rows:30px minmax(26px,auto) 18px;
       align-content:center; justify-items:start; row-gap:1px;
-      padding:9px 11px; min-width:0; width:100%; min-height:86px;
+      padding:10px 11px; min-width:0; width:100%; min-height:102px;
       border:1px solid var(--ha-card-border-color,var(--divider-color,transparent));
       border-radius:var(--ha-card-border-radius,12px);
       color:var(--primary-text-color);
@@ -256,23 +256,22 @@
       border-color:color-mix(in srgb,var(--tile-color) 25%,var(--divider-color,#ddd));}
     button.tile.clickable:active {transform:translateY(0);}
     button.tile:focus-visible {outline:2px solid var(--primary-color); outline-offset:2px;}
-    button.tile.colored {background:
-      linear-gradient(125deg,
-        color-mix(in srgb,var(--tile-color) 12%,transparent) 0%,
-        color-mix(in srgb,var(--tile-color) 6%,transparent) 27%,
-        transparent 72%),
-      var(--ha-card-background,var(--card-background-color,#fff));}
-    .icon {box-sizing:border-box; height:24px; width:29px; display:flex;
+    /* Original v1.2 gradient, exactly: 135deg, 32% through 14%, transparent by 68%. */
+    button.tile.colored {background:linear-gradient(135deg,
+      color-mix(in srgb,var(--tile-color) 32%, transparent) 0%,
+      color-mix(in srgb,var(--tile-color) 32%, transparent) 14%,
+      transparent 68%),var(--ha-card-background,var(--card-background-color,#fff));}
+    .icon {box-sizing:border-box; height:30px; width:30px; display:flex;
       align-items:center; justify-content:flex-start;
       color:var(--tile-fg,var(--secondary-text-color));}
-    ha-icon {--mdc-icon-size:21px; width:21px; height:21px;}
+    ha-icon {--mdc-icon-size:25px; width:25px; height:25px;}
     .state {color:var(--tile-fg,var(--secondary-text-color));
-      font-size:14.5px; line-height:21px; font-weight:650; letter-spacing:-.15px;
+      font-size:16px; line-height:26px; font-weight:700;
       width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .label {color:var(--secondary-text-color); font-size:11.5px; line-height:16px;
-      font-weight:450; letter-spacing:.05px; width:100%; min-width:0;
+    .label {color:var(--primary-text-color); font-size:13px; line-height:18px;
+      opacity:.8; width:100%; min-width:0;
       overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    button.tile:not(:has(.label)) {grid-template-rows:25px minmax(21px,auto); min-height:70px;}
+    button.tile:not(:has(.label)) {grid-template-rows:30px minmax(26px,auto); min-height:82px;}
     .empty {padding:16px;color:var(--secondary-text-color);font-size:13px;}
     @media (prefers-reduced-motion:reduce) {
       button.tile {transition:none;}
@@ -286,7 +285,7 @@
     getCardSize() {
       const n=(this._config?.tiles || []).filter(t=>t.enabled!==false && KINDS[t.kind]).length;
       const cols=Math.max(1,Math.min(4,Number(this._config?.columns)||2));
-      return Math.max(1,Math.ceil((Math.ceil(n/cols)*94 + 8)/50));
+      return Math.max(1,Math.ceil((Math.ceil(n/cols)*110 + 8)/50));
     }
     getGridOptions() {return {columns:12,rows:'auto'};}
     setConfig(config) {

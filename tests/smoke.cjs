@@ -5,6 +5,8 @@ const assert = require('node:assert/strict');
 const src = fs.readFileSync(require('node:path').join(__dirname,'../dist/central-overview-card.js'),'utf8');
 assert(!src.includes('--custom_'), 'Must not depend on custom theme variables');
 assert(!src.includes('edelmann'), 'Must not include original installation-specific entities');
+assert(!src.includes('local:'), 'Must not depend on third-party or local icon collections');
+assert(src.includes('ha-icon-picker'), 'Must provide native Home Assistant icon picker');
 const testSrc = src.replace(/\}\)\(\);\s*$/, 'window.__test = { compute, createConfig, resolveEntities, KINDS };})();');
 const registry = new Map();
 const windowStub = { customCards: [] };

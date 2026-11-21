@@ -1,8 +1,17 @@
-# MYHS Central Card for Home Assistant
+# Central Overview Card – universelle Home-Assistant-Zentralübersicht
 
 Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln** und **vollständigem visuellem Editor**. Die Karte ist für jede Home-Assistant-Installation gedacht. Sie enthält **keine festen Benutzer- oder Entitäts-IDs** und benötigt **keine `button-card`**.
 
 ![Vorschau mit frei erfundenen Beispieldaten](images/preview.png)
+
+### Design in v1.4.0 – ursprünglicher Farbverlauf, angenehme Höhe
+
+- Der **ursprüngliche Farbverlauf** ist zurück (135°; HA-Theme-Farbe bei 32 % von 0–14 %, auslaufend bis 68 %), identisch zur v1.2-Darstellung.
+- Kachel-Mindesthöhe jetzt **102 px** statt 86 px (v1.3) oder 111 px (v1.2) – ein ausgewogener Mittelweg.
+- Icon 25 px, Status 16 px und Untertitel 13 px: wieder besser lesbar.
+- Alle **16 Kacheln**, der unveränderte **visuelle Editor** sowie HA-Standardfarben und `mdi:`-Icons bleiben erhalten.
+- Bisherige Konfigurationen bleiben kompatibel; keine neuen Pflichtfelder.
+
 
 ## Visuell bearbeiten – direkt im Home-Assistant-Menü
 
@@ -16,7 +25,7 @@ Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln
    - **Datenquelle** wählen: automatische Erkennung, ausgewählte Entitäten oder Gruppen/Helfer.
    - Eigene **Entitäten aus dem Home-Assistant-Entitätswähler** zuordnen (auch mehrere).
    - **Bereich** filtern (bei automatischer Erkennung), optional Entitäts-Präfix filtern.
-   - **Icon** (`mdi:` oder `local:`), **Beschriftung**, **Navigationsziel** und **aktive Farbe** festlegen.
+   - **Icon** aus dem **nativen Home-Assistant-Symbolwähler** (`mdi:`), **Beschriftung**, **Navigationsziel** und **aktive Farbe** festlegen.
    - **Spaltenzahl** (1–4), Abstand und die Anzeige von Untertiteln festlegen.
 5. **Speichern**. Die Karte erzeugt die Lovelace-Konfiguration selbst – **kein YAML erforderlich**.
 
@@ -43,9 +52,35 @@ Eine eigenständige Lovelace-Karte mit **16 frei konfigurierbaren Status-Kacheln
 
 **Hinweis zur automatischen Erkennung:** Diese nutzt Home-Assistant-Domänen und Geräteklassen, keine Wörter aus Entitäts-IDs wie `sonos` oder `heizung`. Geräte ohne passende Geräteklasse bitte über **„Entitäten auswählen“** bzw. **„Gruppe / Helfer verwenden“** zuordnen. Automatisch erkannte Aggregat-Entitäten mit `entity_id`-Mitgliedern werden zum Zählen auf ihre Mitglieder aufgelöst. Wenn die Installation keine Geräte-/Bereichszuordnung bietet, wird statt der Anzahl **Räume** ggf. die Anzahl **Geräte** angezeigt.
 
+## Icons aus Home Assistant
+
+Alle 16 Kacheln benutzen ausschließlich **integrierte Material Design Icons** (Präfix `mdi:`), die Home Assistant bereits mitliefert. Im visuellen Editor öffnet der Nutzer pro Kachel den **nativen Home-Assistant-Icon-Picker**, sucht ein Symbol und wählt es aus. Zusätzliche Icon-Sets (`local:`, `hacs:`, Iconify usw.) sind **nicht erforderlich** und werden nicht verwendet. Ist der Icon-Picker in einer älteren Frontend-Version nicht geladen, erscheint als Fallback ein Eingabefeld für `mdi:`-Symbole.
+
 ## Farben
 
 Verwendet ausschließlich die **vorhandenen Home-Assistant-Theme-Variablen**: `--success-color`, `--error-color`, `--warning-color`, `--info-color`, `--orange-color`, `--cyan-color`, `--purple-color`, `--pink-color` und weitere Standard-Palettenfarben (`--red-color`, `--green-color`, `--amber-color`, …). **Keine `--custom_*`-Variablen.** Die jeweils aktive Farbe kann im visuellen Editor eingestellt werden. Alarm und Schloss benutzen standardmäßig **zustandsabhängige Farben**. Die Farbverläufe werden per CSS erzeugt, passend zu hellen und dunklen Themes.
+
+## GitHub-Upload (für HACS/Marketplace)
+
+Erstelle auf GitHub ein **öffentliches Repository**, zum Beispiel `lovelace-central-overview-card`. Entpacke die Projekt-ZIP und lade **den Inhalt des Ordners `lovelace-central-overview-card` direkt in das Repository-Hauptverzeichnis** hoch. Nicht das ZIP selbst hochladen und nicht den ganzen Ordner eine Ebene tiefer anlegen.
+
+```text
+.github/workflows/validate.yml
+dist/central-overview-card.js
+images/preview.png
+images/editor.png
+examples/three-tiles.yaml
+tests/browser.html
+tests/browser_smoke.py
+tests/smoke.cjs
+hacs.json
+README.md
+LICENSE
+```
+
+Über **Add file → Upload files → Commit changes** kannst du Dateien hochladen. GitHub lädt versteckte `.github`-Ordner über Drag-and-drop je nach Browser unterschiedlich zuverlässig hoch; kontrolliere, dass `.github/workflows/validate.yml` vorhanden ist. Alternativ lege sie in GitHub per **Add file → Create new file** mit dem Pfad `.github/workflows/validate.yml` an.
+
+Erstelle danach optional unter **Releases → Draft a new release** ein Release, z. B. `v1.4.0`. Dieses ist für die öffentliche Verteilung und Updates sinnvoll. Anschließend das Repository in HACS/Marketplace als benutzerdefiniertes Repository vom Typ **Dashboard** hinzufügen.
 
 ## Installation
 
@@ -60,6 +95,15 @@ Verwendet ausschließlich die **vorhandenen Home-Assistant-Theme-Variablen**: `-
 
 Zur Vorbereitung der öffentlichen Veröffentlichung ist eine GitHub-Action `.github/workflows/validate.yml` enthalten. Eine Aufnahme in den öffentlichen HACS-Katalog muss separat beantragt werden und wird nicht durch das ZIP garantiert.
 
+### Option B – sofort lokal (ohne GitHub)
+
+1. Nur `dist/central-overview-card.js` in Home Assistant nach `/config/www/central-overview-card.js` kopieren (gegebenenfalls `www` anlegen).
+2. Unter **Einstellungen → Dashboards → Ressourcen** eine Ressource hinzufügen:
+   - URL: `/local/central-overview-card.js`
+   - Typ: **JavaScript-Modul**
+3. Browser vollständig neu laden und die Karte im visuellen Dashboard-Editor hinzufügen.
+
+Falls der Reiter **Ressourcen** nicht sichtbar ist, muss eventuell der erweiterte Modus im Home-Assistant-Profil aktiviert werden; die genaue Oberfläche kann je nach Version abweichen.
 
 ### Mini-YAML-Beispiel (optional, nicht nötig für den Editor)
 
